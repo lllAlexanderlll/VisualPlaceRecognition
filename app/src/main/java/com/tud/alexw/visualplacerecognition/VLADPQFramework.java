@@ -23,16 +23,21 @@ public class VLADPQFramework {
     SURFExtractor surfExtractor;
     PCA pca;
     PQ pq;
-    boolean doPCA = false;
-    boolean doWhitening = true;
+    boolean doPCA;
+    boolean doWhitening;
+    boolean mIsSetup;
 
-    VLADPQFramework( File[] codebookFiles, int[] numCentroids, File pcaFile, int projectionLength) throws Exception {
+    VLADPQFramework( ) {
+        mIsSetup = false;
+        doPCA = false;
+        doWhitening = true;
+    }
+
+    public void setup(File[] codebookFiles, int[] numCentroids, File pcaFile, int projectionLength) throws Exception {
 //        String[] codebookFiles = { "C:/codebook1.csv", "C:/codebook2.csv", "C:/codebook3.csv", "C:/codebook4.csv" };
 //        int[] numCentroids = { 64, 64, 64, 64 };
 //        String pcaFilename = "C:/pca.txt";
 //        int projectionLength = 128;
-
-
 
         if( !(codebookFiles.length == numCentroids.length && numCentroids.length > 0)){
             throw new IllegalArgumentException("Number of codebooks and number of their sizes must be greater zero and not differ!");
@@ -47,13 +52,17 @@ public class VLADPQFramework {
             pca = new PCA(projectionLength, 1, initialLength, doWhitening);
             pca.loadPCAFromFile(pcaFile);
         }
+        mIsSetup = true;
+    }
 
-
-
-
+    private void checkSetup(){
+        if(!mIsSetup){
+            throw new IllegalStateException("VLADPQFramework must be setup first!");
+        }
     }
 
     public void loadPQIndex(File pqIndexDir, File pqCodebookFile) throws Exception {
+        checkSetup();
         long cacheSize_mb = 10;
         pq = new PQ(4096, 245, false, pqIndexDir, 8, 10, PQ.TransformationType.None, true, 0, true, cacheSize_mb);
 
@@ -64,6 +73,7 @@ public class VLADPQFramework {
     }
 
     public double[] inference(Bitmap bitmap, int width, int height, int targetVectorLength) throws Exception {
+        checkSetup();
         double[][] features = surfExtractor.extractFeaturesInternal(bitmap, width, height);
         if (targetVectorLength > vladAggregator.getVectorLength() || targetVectorLength <= 0) {
             throw new Exception("Target vector length should be between 1 and " + vladAggregator.getVectorLength());
@@ -82,14 +92,17 @@ public class VLADPQFramework {
     }
 
     public Answer search(int k, double[] vladVector) throws Exception {
+        checkSetup();
         return pq.computeNearestNeighbors(k, vladVector);
     }
 
     public boolean isDoPCA() {
+        checkSetup();
         return doPCA;
     }
 
     public boolean isDoWhitening() {
+        checkSetup();
         return doWhitening;
     }
 }

@@ -16,11 +16,11 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
     }
-    sourceSets {
-        main {
-            resources.includes = [ "src/main/resources/*" ]
-        }
-    }
+//    sourceSets {
+//        main {
+//            resources.includes = [ "src/main/resources/*" ]
+//        }
+//    }
 }
 
 dependencies {
@@ -39,4 +39,8 @@ dependencies {
     implementation group: 'org.boofcv', name: 'boofcv-android', version: '0.27'
     implementation group: 'nz.ac.waikato.cms.weka', name: 'weka-dev', version:'3.7.12'
     implementation group: 'com.aliasi', name: 'lingpipe', version:'4.0.1'
+
+    implementation 'com.segway.robot:visionsdk:0.6.547'
+    implementation 'com.segway.robot:headsdk:0.6.746'
+    implementation 'com.segway.robot:basesdk:0.6.746'
 }
