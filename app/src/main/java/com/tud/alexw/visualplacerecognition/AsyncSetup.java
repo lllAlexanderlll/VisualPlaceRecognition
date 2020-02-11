@@ -31,15 +31,9 @@ class AsyncSetup extends AsyncTask<Void, Void, String> {
     protected String doInBackground(Void... voids) {
         try{
 
-            File codebookFile = new File(mContext.getExternalFilesDir(null), "codebook/features.csv_codebook-64A-64C-100I-1S_power+l2.csv");
-            File pcaFile = new File(mContext.getExternalFilesDir(null), "pca/linearIndexBDB_307200_surf_4096pca_245_128_10453ms.txt");
-            File linearIndexDir = new File(mContext.getExternalFilesDir(null), "linearIndex/BDB_307200_surf_4096/");
-            File pqIndexDir = new File(mContext.getExternalFilesDir(null), "pqIndex/");
-            File pqCodebookFile = new File(mContext.getExternalFilesDir(null), "pqCodebook/pq_4096_8x3_244.csv");
-
             long start = System.currentTimeMillis();
-            mVladpqFramework.setup(new File[]{codebookFile}, new int[]{64}, pcaFile, 128);
-            mVladpqFramework.loadPQIndex(pqIndexDir, pqCodebookFile);
+            mVladpqFramework.setup();
+            mVladpqFramework.loadPQIndex();
             return "Pipeline setup successful: " + Utils.blue((System.currentTimeMillis() - start) + " ms");
 
 

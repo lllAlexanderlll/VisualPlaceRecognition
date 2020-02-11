@@ -10,6 +10,7 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.List;
 
 import com.aliasi.util.BoundedPriorityQueue;
 import com.tud.alexw.visualplacerecognition.Utils;
@@ -273,12 +274,12 @@ public abstract class AbstractFeatureAggregator {
 	 * @return the quantizers as a 3-dimensional double array
 	 * @throws IOException
 	 */
-	public static double[][][] readQuantizers(File[] files, int[] numCentroids, int centroidLength)
+	public static double[][][] readQuantizers(List<File> files, List<Integer> numCentroids, int centroidLength)
 			throws IOException {
-		int numQuantizers = files.length;
+		int numQuantizers = files.size();
 		double[][][] quantizers = new double[numQuantizers][][];
 		for (int i = 0; i < numQuantizers; i++) {
-			quantizers[i] = AbstractFeatureAggregator.readQuantizer(files[i], numCentroids[i],
+			quantizers[i] = AbstractFeatureAggregator.readQuantizer(files.get(i), numCentroids.get(i),
 					centroidLength);
 		}
 		return quantizers;

@@ -1,11 +1,9 @@
 package com.tud.alexw.visualplacerecognition;
 
 import android.graphics.Bitmap;
-import android.os.Environment;
 import android.util.Log;
 
 import java.io.File;
-import java.io.IOException;
 
 import gr.iti.mklab.visual.aggregation.AbstractFeatureAggregator;
 import gr.iti.mklab.visual.aggregation.VladAggregatorMultipleVocabularies;
@@ -23,35 +21,26 @@ public class VLADPQFramework {
     SURFExtractor surfExtractor;
     PCA pca;
     PQ pq;
-    boolean doPCA;
-    boolean doWhitening;
     boolean mIsSetup;
+    Boolean doPCA;
+    Config mConfig;
 
-    VLADPQFramework( ) {
+    VLADPQFramework(Config config) {
         mIsSetup = false;
-        doPCA = false;
-        doWhitening = true;
+        mConfig = config;
     }
 
-    public void setup(File[] codebookFiles, int[] numCentroids, File pcaFile, int projectionLength) throws Exception {
-//        String[] codebookFiles = { "C:/codebook1.csv", "C:/codebook2.csv", "C:/codebook3.csv", "C:/codebook4.csv" };
-//        int[] numCentroids = { 64, 64, 64, 64 };
-//        String pcaFilename = "C:/pca.txt";
-//        int projectionLength = 128;
-
-        if( !(codebookFiles.length == numCentroids.length && numCentroids.length > 0)){
-            throw new IllegalArgumentException("Number of codebooks and number of their sizes must be greater zero and not differ!");
-        }
-
+    public void setup() throws Exception {
         surfExtractor = new SURFExtractor();
-        codebooks = AbstractFeatureAggregator.readQuantizers(codebookFiles, numCentroids, AbstractFeatureExtractor.SURFLength);
+        codebooks = AbstractFeatureAggregator.readQuantizers(mConfig.codebookFiles, mConfig.codebookSizes, AbstractFeatureExtractor.SURFLength);
         vladAggregator = new VladAggregatorMultipleVocabularies(codebooks);
 
-        int initialLength = numCentroids.length * numCentroids[0] * AbstractFeatureExtractor.SURFLength;
-        if (projectionLength < initialLength) {
-            pca = new PCA(projectionLength, 1, initialLength, doWhitening);
-            pca.loadPCAFromFile(pcaFile);
+        int initialLength = mConfig.codebookSizes.size() * mConfig.codebookSizes.get(0) * AbstractFeatureExtractor.SURFLength;
+        if (mConfig.projectionLength < initialLength) {
+            pca = new PCA(mConfig.projectionLength, 1, initialLength, mConfig.doWhitening);
+            pca.loadPCAFromFile(mConfig.pcaFile);
         }
+        doPCA = null;
         mIsSetup = true;
     }
 
@@ -61,13 +50,13 @@ public class VLADPQFramework {
         }
     }
 
-    public void loadPQIndex(File pqIndexDir, File pqCodebookFile) throws Exception {
+    public void loadPQIndex() throws Exception {
         checkSetup();
         long cacheSize_mb = 10;
-        pq = new PQ(4096, 245, false, pqIndexDir, 8, 10, PQ.TransformationType.None, true, 0, true, cacheSize_mb);
+        pq = new PQ(4096, 245, false, mConfig.pqIndexDir, 8, 10, PQ.TransformationType.None, true, 0, true, cacheSize_mb);
 
         Log.i(TAG, "Loading the PQ from file:");
-        pq.loadProductQuantizer(pqCodebookFile);
+        pq.loadProductQuantizer(mConfig.pqCodebookFile);
         Log.i(TAG, pq.toString());
 
     }
@@ -80,12 +69,12 @@ public class VLADPQFramework {
         }
         double[] vladVector = vladAggregator.aggregate(features);
 
-        if (vladVector.length == targetVectorLength) {
+        doPCA = vladVector.length != targetVectorLength;
+        if (doPCA) {
             Log.i(TAG, "No PCA projection needed!");
             return vladVector;
         } else {
             // PCA projection
-            doPCA = true;
             double[] projected = pca.sampleToEigenSpace(vladVector);
             return projected;
         }
@@ -96,13 +85,16 @@ public class VLADPQFramework {
         return pq.computeNearestNeighbors(k, vladVector);
     }
 
-    public boolean isDoPCA() {
+    public boolean ismDoPCA() {
         checkSetup();
+        if(doPCA == null){
+            throw new IllegalStateException("Connot retrieve PCA status. Inference must be called first!");
+        }
         return doPCA;
     }
 
-    public boolean isDoWhitening() {
+    public boolean ismDoWhitening() {
         checkSetup();
-        return doWhitening;
+        return mConfig.doWhitening;
     }
 }
