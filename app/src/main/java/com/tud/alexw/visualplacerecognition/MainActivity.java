@@ -54,6 +54,7 @@ public class MainActivity extends AppCompatActivity {
         mVision = Vision.getInstance();
         mHead = Head.getInstance();
 
+        // Setup loomo
         mRunningOnLoomo &= mVision.bindService(this, mBindStateListenerVision);
         mRunningOnLoomo &= mHead.bindService(getApplicationContext(), mServiceBindListenerHead);
         if (mRunningOnLoomo) {
@@ -68,7 +69,7 @@ public class MainActivity extends AppCompatActivity {
             findViewById(R.id.loomoFlag).setVisibility(View.GONE);
         }
 
-
+        //setup and check storage and files
         try {
             if(Utils.isStorageStructureCreated(getApplicationContext())){
                 mVLADPQFramework = new VLADPQFramework(
@@ -113,7 +114,13 @@ public class MainActivity extends AppCompatActivity {
                         public void run() {
 
                             mHead.resetOrientation();
-                            mBitmap = mImageCapturer.captureImage();
+                            try{
+                                mBitmap = mImageCapturer.captureImage();
+                            }
+                            catch (Exception e){
+                                Log.e("OnClick Loomo capture:", Log.getStackTraceString(e));
+                            }
+
 
                             runOnUiThread(new Runnable() {
                                 @Override
@@ -134,7 +141,14 @@ public class MainActivity extends AppCompatActivity {
                         }
                     }).start();
                 } else {
-                    mBitmap = mImageCapturer.captureImage();
+                   try{
+                       mBitmap = mImageCapturer.captureImage();
+                   }
+                   catch (Exception e){
+                       Log.e("OnClick Android capture:", Log.getStackTraceString(e));
+                   }
+                   inference();
+
                 }
 
             }

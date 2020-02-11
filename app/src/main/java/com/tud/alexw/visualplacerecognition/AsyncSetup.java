@@ -48,7 +48,6 @@ class AsyncSetup extends AsyncTask<Void, Void, String> {
 
          mButton.setEnabled(!result.isEmpty());
          if(result.startsWith("Pipeline setup successful")){
-             Toast.makeText(mContext, "Index loaded", Toast.LENGTH_LONG).show();
              Utils.addStatus(mTextView, result);
          }
          else{
