@@ -121,7 +121,6 @@ public class MainActivity extends AppCompatActivity {
         new AsyncSetup(mVLADPQFramework, mTextView, mCaptureButton, getApplicationContext()).execute();
 
         mCaptureButton.setOnClickListener(new View.OnClickListener() {
-            @SuppressLint("LongLogTag")
             @Override
             public void onClick(View v) {
                 if (mRunningOnLoomo) {
@@ -134,10 +133,10 @@ public class MainActivity extends AppCompatActivity {
                                 mBitmap = mImageCapturer.captureImage();
                             }
                             catch (Exception e){
-                                Log.e("OnClick Loomo capture:", Log.getStackTraceString(e));
+                                Log.e("Capture:", Log.getStackTraceString(e));
                             }
 
-
+                            //update UI and start inference
                             runOnUiThread(new Runnable() {
                                 @Override
                                 public void run() {
@@ -150,8 +149,6 @@ public class MainActivity extends AppCompatActivity {
                                     }
                                 }
                             });
-
-
                             mHead.resetOrientation();
                             mHead.setWorldPitch(Utils.degreeToRad(45));
                         }
@@ -161,7 +158,7 @@ public class MainActivity extends AppCompatActivity {
                        dispatchTakePictureIntent();
                    }
                    catch (Exception e){
-                       Log.e("OnClick Android capture:", Log.getStackTraceString(e));
+                       Log.e("Capture:", Log.getStackTraceString(e));
                    }
                 }
 
@@ -311,20 +308,18 @@ public class MainActivity extends AppCompatActivity {
     }
 
     static final int REQUEST_TAKE_PHOTO = 1;
-
     private void dispatchTakePictureIntent() {
         Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
         // Ensure that there's a camera activity to handle the intent
         if (takePictureIntent.resolveActivity(getPackageManager()) != null) {
-            // Create the File where the photo should go
+
             File photoFile = null;
             try {
                 photoFile = createImageFile();
             } catch (IOException ex) {
-                // Error occurred while creating the File
                 Log.e(TAG, "Couldn't create photo file");
             }
-            // Continue only if the File was successfully created
+
             if (photoFile != null) {
                 Uri photoURI = FileProvider.getUriForFile(this,
                         "com.example.android.fileprovider",
