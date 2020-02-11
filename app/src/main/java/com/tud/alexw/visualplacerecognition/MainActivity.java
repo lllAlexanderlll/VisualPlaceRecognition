@@ -7,6 +7,7 @@ import androidx.core.content.FileProvider;
 import gr.iti.mklab.visual.utilities.Answer;
 
 import android.Manifest;
+import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.content.res.Configuration;
@@ -33,6 +34,7 @@ import java.io.File;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.Locale;
 
 
 public class MainActivity extends AppCompatActivity {
@@ -85,8 +87,11 @@ public class MainActivity extends AppCompatActivity {
                 mVLADPQFramework = new VLADPQFramework(
                         new Config(
                                 getApplicationContext(),
+                                960,
+                                540,
                                 new String[]{"codebook/features.csv_codebook-64A-64C-100I-1S_power+l2.csv"},
                                 new Integer[]{64},
+                                true,
                                 "pca/linearIndexBDB_307200_surf_4096pca_245_128_10453ms.txt",
                                 4096,
                                 true,
@@ -116,6 +121,7 @@ public class MainActivity extends AppCompatActivity {
         new AsyncSetup(mVLADPQFramework, mTextView, mCaptureButton, getApplicationContext()).execute();
 
         mCaptureButton.setOnClickListener(new View.OnClickListener() {
+            @SuppressLint("LongLogTag")
             @Override
             public void onClick(View v) {
                 if (mRunningOnLoomo) {
@@ -220,8 +226,10 @@ public class MainActivity extends AppCompatActivity {
         if (mRunningOnLoomo) {
             super.onActivityResult(requestCode, resultCode, data);
         } else {
+            if (requestCode == REQUEST_IMAGE_CAPTURE && resultCode == RESULT_OK) {
                 setPic();
                 inference();
+            }
         }
 
     }
@@ -249,11 +257,7 @@ public class MainActivity extends AppCompatActivity {
     public void inference() {
         try {
             long start = System.currentTimeMillis();
-            double[] vladVector = mVLADPQFramework.inference(mBitmap, 960, 540, 4096);
-            if (mVLADPQFramework.ismDoPCA()) {
-                Utils.addStatus(mTextView, "PCA: " + Utils.blue("true"));
-                Utils.addStatus(mTextView, String.format("Whitening: %s", Utils.blue(Boolean.toString(mVLADPQFramework.ismDoWhitening()))));
-            }
+            double[] vladVector = mVLADPQFramework.inference(mBitmap);
             Utils.addStatus(mTextView, String.format("Vectorized image to VLAD vector! (Length: %d) %s", vladVector.length, Utils.blue((System.currentTimeMillis() - start) + " ms")));
 
             start = System.currentTimeMillis();
@@ -285,10 +289,21 @@ public class MainActivity extends AppCompatActivity {
 
     private File createImageFile() throws IOException {
         // Create an image file name
-        String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
-        String imageFileName = "JPEG_" + timeStamp + "_";
-        File storageDir = getExternalFilesDir(null);
-        File image = File.createTempFile(imageFileName, ".jpg", storageDir);
+        String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(new Date());
+        String imageFileName = "temp_" + timeStamp + ".jpg";
+
+
+        File imagePath = new File(getFilesDir(), "images");
+        File image= new File(imagePath, imageFileName);
+        try{
+            /* Making sure the Pictures directory exist.*/
+            if(!imagePath.mkdirs()){
+                Log.e("createImageFile", "couldn't create image file");
+            }
+        }catch (Exception e) {
+            e.printStackTrace();
+        }
+
 
         // Save a file: path for use with ACTION_VIEW intents
         currentPhotoPath = image.getAbsolutePath();
@@ -297,27 +312,27 @@ public class MainActivity extends AppCompatActivity {
 
     static final int REQUEST_TAKE_PHOTO = 1;
 
-    private void dispatchTakePictureIntent() throws IOException {
+    private void dispatchTakePictureIntent() {
         Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
         // Ensure that there's a camera activity to handle the intent
         if (takePictureIntent.resolveActivity(getPackageManager()) != null) {
             // Create the File where the photo should go
             File photoFile = null;
-            photoFile = createImageFile();
+            try {
+                photoFile = createImageFile();
+            } catch (IOException ex) {
+                // Error occurred while creating the File
+                Log.e(TAG, "Couldn't create photo file");
+            }
             // Continue only if the File was successfully created
             if (photoFile != null) {
                 Uri photoURI = FileProvider.getUriForFile(this,
                         "com.example.android.fileprovider",
                         photoFile);
+                takePictureIntent.setFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
                 takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, photoURI);
                 startActivityForResult(takePictureIntent, REQUEST_TAKE_PHOTO);
             }
-            else{
-                Log.e(TAG, "File wasn't created sucessfully!");
-            }
-        }
-        else{
-            Log.e(TAG, "Activity couldn't be resolved!");
         }
     }
 
@@ -343,8 +358,8 @@ public class MainActivity extends AppCompatActivity {
         bmOptions.inSampleSize = scaleFactor;
         bmOptions.inPurgeable = true;
 
-        Bitmap bitmap = BitmapFactory.decodeFile(currentPhotoPath, bmOptions);
-        mImageView.setImageBitmap(bitmap);
+        mBitmap = BitmapFactory.decodeFile(currentPhotoPath, bmOptions);
+        mImageView.setImageBitmap(mBitmap);
     }
 
 

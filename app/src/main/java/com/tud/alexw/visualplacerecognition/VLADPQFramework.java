@@ -61,40 +61,27 @@ public class VLADPQFramework {
 
     }
 
-    public double[] inference(Bitmap bitmap, int width, int height, int targetVectorLength) throws Exception {
+    public double[] inference(Bitmap bitmap) throws Exception {
         checkSetup();
-        double[][] features = surfExtractor.extractFeaturesInternal(bitmap, width, height);
-        if (targetVectorLength > vladAggregator.getVectorLength() || targetVectorLength <= 0) {
+        double[][] features = surfExtractor.extractFeaturesInternal(bitmap, mConfig.width, mConfig.height);
+        if (mConfig.projectionLength > vladAggregator.getVectorLength() || mConfig.projectionLength <= 0) {
             throw new Exception("Target vector length should be between 1 and " + vladAggregator.getVectorLength());
         }
         double[] vladVector = vladAggregator.aggregate(features);
 
-        doPCA = vladVector.length != targetVectorLength;
-        if (doPCA) {
-            Log.i(TAG, "No PCA projection needed!");
-            return vladVector;
-        } else {
+
+        if (mConfig.doPCA && vladVector.length != mConfig.projectionLength) {
             // PCA projection
             double[] projected = pca.sampleToEigenSpace(vladVector);
             return projected;
+        } else {
+            Log.i(TAG, "No PCA projection needed!");
+            return vladVector;
         }
     }
 
     public Answer search(int k, double[] vladVector) throws Exception {
         checkSetup();
         return pq.computeNearestNeighbors(k, vladVector);
-    }
-
-    public boolean ismDoPCA() {
-        checkSetup();
-        if(doPCA == null){
-            throw new IllegalStateException("Connot retrieve PCA status. Inference must be called first!");
-        }
-        return doPCA;
-    }
-
-    public boolean ismDoWhitening() {
-        checkSetup();
-        return mConfig.doWhitening;
     }
 }
