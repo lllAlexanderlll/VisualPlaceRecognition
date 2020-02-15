@@ -1,4 +1,4 @@
-package com.tud.alexw.visualplacerecognition;
+package com.tud.alexw.visualplacerecognition.result;
 
 import java.util.List;
 

@@ -1,6 +1,8 @@
-package com.tud.alexw.visualplacerecognition;
+package com.tud.alexw.visualplacerecognition.result;
 
 import android.util.Log;
+
+import com.tud.alexw.visualplacerecognition.Utils;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -45,7 +47,7 @@ public class Annotations{
     class MajorityCountComparator implements Comparator<MajorityCount> {
         @Override
         public int compare(MajorityCount a, MajorityCount b) {
-            return Integer.compare(a.count, b.count);
+            return -1*Integer.compare(a.count, b.count);
         }
     }
 
@@ -72,7 +74,7 @@ public class Annotations{
             sb.append(majorityCount.label).append(": ")
                 .append(Collections.frequency(labelsList, majorityCount.label)).append("\n");
         }
-        sb.append(majorityCounts.get(0).label).append(": ").append(Utils.blue(Integer.toString(majorityCounts.get(0).count)));
+        sb.append(Utils.blue(String.format("%s: %.2f%%",majorityCounts.get(0).label, ((float)majorityCounts.get(0).count / sum)*100)));
         return sb.toString();
     }
 

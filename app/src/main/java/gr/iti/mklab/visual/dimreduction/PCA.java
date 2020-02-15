@@ -263,6 +263,7 @@ public class PCA {
 	 */
 	public void loadPCAFromFile(File file) throws Exception{
 
+		long start = System.currentTimeMillis();
 		// parse the PCA projection file and put the PCA components in a 2-d double array
 		BufferedReader in = new BufferedReader(new FileReader(file));
 		String line = "";
@@ -296,9 +297,6 @@ public class PCA {
 
 		V_t = new DMatrixRMaj(numComponents, sampleSize);
 		for (int i = 0; i < numComponents; i++) {
-			if (i % 100 == 0) {
-				Log.i(TAG, i + " PCA components loaded.");
-			}
 			try {
 				line = in.readLine();
 			} catch (IOException e) {
@@ -311,10 +309,11 @@ public class PCA {
 				V_t.set(i, j, componentElement);
 			}
 		}
+		Log.i(TAG, numComponents + " PCA components loaded.");
 
 		// if whitening is true then whiten the PCA matrix V_t by multiplying it with W
 		if (doWhitening) {
-			System.out.print("Whitening the PCA matrix..");
+			Log.i(TAG,"Whitening the PCA matrix..");
 			DMatrixRMaj V_t_w = new DMatrixRMaj(numComponents, sampleSize);
 			CommonOps_DDRM.mult(W, V_t, V_t_w);
 			V_t = V_t_w;
@@ -322,6 +321,7 @@ public class PCA {
 
 		in.close();
 
+		Log.i(TAG, "PCA" + (doWhitening ? "w" : "") + (numComponents) + "loaded in" + (System.currentTimeMillis() - start) + " ms");
 		isPcaInitialized = true;
 	}
 

@@ -1,4 +1,4 @@
-package com.tud.alexw.visualplacerecognition;
+package com.tud.alexw.visualplacerecognition.capturing;
 
 import android.graphics.Bitmap;
 

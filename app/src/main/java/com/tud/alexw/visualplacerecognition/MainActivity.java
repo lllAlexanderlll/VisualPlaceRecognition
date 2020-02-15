@@ -27,10 +27,14 @@ import android.widget.Toast;
 import com.segway.robot.sdk.base.bind.ServiceBinder;
 import com.segway.robot.sdk.locomotion.head.Head;
 import com.segway.robot.sdk.vision.Vision;
+import com.tud.alexw.visualplacerecognition.capturing.ImageCapturer;
+import com.tud.alexw.visualplacerecognition.capturing.ImageCapturerAndroid;
+import com.tud.alexw.visualplacerecognition.capturing.ImageCapturerLoomo;
+import com.tud.alexw.visualplacerecognition.result.Annotations;
+import com.tud.alexw.visualplacerecognition.result.Result;
 
 import java.io.File;
 import java.io.IOException;
-import java.text.Format;
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.Date;
@@ -93,7 +97,7 @@ public class MainActivity extends AppCompatActivity {
                     10,
                     96,
                     1244,
-                    false,
+                    true,
                     10,
                     2
             );
@@ -335,7 +339,6 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private static final int MY_CAMERA_REQUEST_CODE = 100;
-
     @RequiresApi(api = Build.VERSION_CODES.M)
     private void cameraPermission() {
         if (checkSelfPermission(Manifest.permission.CAMERA)

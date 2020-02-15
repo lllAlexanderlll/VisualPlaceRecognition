@@ -70,7 +70,7 @@ public class SURFExtractor extends AbstractFeatureExtractor {
 
 		//scale image
 		if(bitmap.getWidth() != width|| bitmap.getHeight() != height){
-			Boolean bilinearFiltering = true;
+			boolean bilinearFiltering = true;
 			bitmap = Bitmap.createScaledBitmap(bitmap, width, height, bilinearFiltering);
 		}
 

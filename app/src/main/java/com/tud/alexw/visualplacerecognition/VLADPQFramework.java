@@ -2,6 +2,7 @@ package com.tud.alexw.visualplacerecognition;
 
 import android.graphics.Bitmap;
 import android.util.Log;
+import android.widget.Toast;
 
 import java.io.File;
 
@@ -76,9 +77,11 @@ public class VLADPQFramework {
         double[] vladVector = vladAggregator.aggregate(features);
 
 
-        if (mConfig.doPCA && vladVector.length != mConfig.projectionLength) {
+        if (mConfig.doPCA && vladVector.length > mConfig.projectionLength) {
             // PCA projection
+
             double[] projected = pca.sampleToEigenSpace(vladVector);
+            Log.i(TAG, "PCA performed.");
             return projected;
         } else {
             Log.i(TAG, "No PCA projection needed!");

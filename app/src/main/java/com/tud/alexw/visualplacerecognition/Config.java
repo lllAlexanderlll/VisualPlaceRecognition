@@ -35,6 +35,7 @@ public class Config {
     boolean readOnly;
     int vectorLength;
     boolean doPQ;
+    boolean loadInMemory;
 
 
     StringBuilder stringBuilder;

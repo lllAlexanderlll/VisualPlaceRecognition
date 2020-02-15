@@ -1,8 +1,7 @@
-package com.tud.alexw.visualplacerecognition;
+package com.tud.alexw.visualplacerecognition.result;
 
 import android.util.Log;
 
-import java.lang.reflect.Array;
 import java.util.Arrays;
 
 import gr.iti.mklab.visual.utilities.Answer;
@@ -14,7 +13,7 @@ public class Result {
     private int counter;
 
 
-    Result(int nMaxAnswers){
+    public Result(int nMaxAnswers){
         if(nMaxAnswers <= 0){
             throw new IllegalArgumentException("nMaxAnswers must be greater than zero!");
         }
