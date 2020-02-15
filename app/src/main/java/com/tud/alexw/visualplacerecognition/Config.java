@@ -28,14 +28,15 @@ public class Config {
     public File pqIndexDir;
     public File pqCodebookFile;
 
-    int nNearestNeighbors;
-    int nMaxAnswers;
-    int numSubVectors,  numProductCentroids;
-    int maxIndexSize;
-    boolean readOnly;
-    int vectorLength;
-    boolean doPQ;
-    boolean loadInMemory;
+    public int nNearestNeighbors;
+    public int nMaxAnswers;
+    public int numSubVectors,  numProductCentroids;
+    public int maxIndexSize;
+    public boolean readOnly;
+    public int vectorLength;
+    public boolean doPQ;
+    public boolean doRunTests;
+    public String testName;
 
 
     StringBuilder stringBuilder;
@@ -43,6 +44,8 @@ public class Config {
 
     public Config(
             Context context,
+            boolean doRunTests,
+            String testName,
             boolean doPQ,
             int width, int height, //image
             String[] codebookFilePaths, Integer[] codebookSizes, //codebook
@@ -56,24 +59,28 @@ public class Config {
 
         stringBuilder = new StringBuilder();
         stringBuilder.append("Configuration:\n")
+        .append("DoRunTests: ").append(doRunTests)
+        .append("Test name: ").append(testName)
         .append(String.format("Image size: %dx%d", width, height))
         .append("Codebook file paths: ").append(Arrays.toString(codebookFilePaths)).append("\n")
         .append("Codebook sizes: ").append(Arrays.toString(codebookSizes)).append("\n")
-        .append("doPCA: ").append(doPCA).append("\n")
+        .append("DoPCA: ").append(doPCA).append("\n")
         .append("Projection length: ").append(projectionLength).append("\n")
         .append("Whitening: ").append(doWhitening).append("\n")
         .append("PCA path: ").append(pcaFilePath).append("\n")
-        .append("Max index size: ").append(maxIndexSize).append("/n")
-        .append("Index is read only: ").append(readOnly).append("/n")
-        .append("Index to load:").append(doPQ ? "PQ" : "Linear").append("/n")
+        .append("Max index size: ").append(maxIndexSize).append("\n")
+        .append("Index is read only: ").append(readOnly).append("\n")
+        .append("Index to load:").append(doPQ ? "PQ" : "Linear").append("\n")
         .append("Linear index path: ").append(linearIndexDirPath).append("\n")
         .append("PQ index path: ").append(pqIndexDirPath).append("\n")
         .append("PQ codebook path: ").append(pqCodebookFilePath).append("\n")
-        .append("Number of subvectors: ").append(numSubVectors).append("/n")
-        .append("Number of centroids per subvector: ").append(numProductCentroids).append("/n")
-        .append("Number of nearest neighbors to retrieve: ").append(nNearestNeighbors).append("/n")
+        .append("Number of subvectors: ").append(numSubVectors).append("\n")
+        .append("Number of centroids per subvector: ").append(numProductCentroids).append("\n")
+        .append("Number of nearest neighbors to retrieve: ").append(nNearestNeighbors).append("\n")
         .append("Number of maximum Answers in Majority Count: ").append(nMaxAnswers).append("\n");
 
+        this.doRunTests = doRunTests;
+        this.testName = testName;
         this.nNearestNeighbors = nNearestNeighbors;
         this.doPQ = doPQ;
         this.maxIndexSize = maxIndexSize;
@@ -110,5 +117,9 @@ public class Config {
     @Override
     public String toString() {
         return stringBuilder.toString();
+    }
+
+    public int generateHashCode(){
+        return toString().hashCode();
     }
 }

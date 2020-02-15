@@ -16,12 +16,14 @@ class AsyncSetup extends AsyncTask<Void, Void, String> {
     private TextView mTextView;
     private Button mButton;
     private VLADPQFramework mVladpqFramework;
+    private boolean mIsTest;
 
-    public AsyncSetup (VLADPQFramework vladpqFramework, TextView textView, Button button, Context context){
+    public AsyncSetup (VLADPQFramework vladpqFramework, TextView textView, Button button, boolean isTest, Context context){
         mVladpqFramework = vladpqFramework;
         mContext = context;
         mTextView = textView;
         mButton = button;
+        mIsTest = isTest;
     }
 
     @Override
@@ -48,7 +50,7 @@ class AsyncSetup extends AsyncTask<Void, Void, String> {
 
     protected void onPostExecute(String result) {
 
-         mButton.setEnabled(!result.isEmpty());
+         mButton.setEnabled(!(result.isEmpty() || mIsTest));
          if(result.startsWith("Pipeline setup successful")){
              Utils.addText(mTextView, result);
          }

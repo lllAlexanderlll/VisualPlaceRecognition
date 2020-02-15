@@ -1,7 +1,5 @@
 package com.tud.alexw.visualplacerecognition.result;
 
-import java.util.List;
-
 public class Annotation{
     public int x, y, yaw, pitch;
     public String label;

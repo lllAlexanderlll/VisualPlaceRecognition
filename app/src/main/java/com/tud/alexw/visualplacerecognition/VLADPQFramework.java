@@ -2,9 +2,9 @@ package com.tud.alexw.visualplacerecognition;
 
 import android.graphics.Bitmap;
 import android.util.Log;
-import android.widget.Toast;
 
-import java.io.File;
+import com.tud.alexw.visualplacerecognition.result.Annotations;
+import com.tud.alexw.visualplacerecognition.result.Result;
 
 import gr.iti.mklab.visual.aggregation.AbstractFeatureAggregator;
 import gr.iti.mklab.visual.aggregation.VladAggregatorMultipleVocabularies;
@@ -25,12 +25,26 @@ public class VLADPQFramework {
     PCA pca;
     AbstractSearchStructure index;
     boolean mIsSetup;
-    Config mConfig;
+    public Config mConfig;
     long cacheSize_mb = 10;
+    long inferenceTime = 0;
+    private Result mResult;
+    private Annotations mAnnotations;
+    private StringBuilder mResultStringBuilder;
+    private StringBuilder mStatusStringBuilder;
+
+    // resultCount, resultLabel, confidence, trueLabel, trueX, trueY, trueYaw, truePitch
+    // resultCount, rank, inferenceTime, searchTime, label, x, y, yaw, pitch
+    private StringBuilder mStringBuilderCSV;
+    private int resultCounter = 0;
 
     VLADPQFramework(Config config) {
         mIsSetup = false;
         mConfig = config;
+        mResult = new Result(mConfig.nMaxAnswers);
+        mResultStringBuilder = new StringBuilder();
+        mStatusStringBuilder = new StringBuilder();
+        mStringBuilderCSV = new StringBuilder();
     }
 
     public void setup() throws Exception {
@@ -68,29 +82,68 @@ public class VLADPQFramework {
         Log.i(TAG, "Linear index loaded");
     }
 
-    public double[] inference(Bitmap bitmap) throws Exception {
+    private double[] inference(Bitmap bitmap) throws Exception {
+        long start = System.currentTimeMillis();
         checkSetup();
+
         double[][] features = surfExtractor.extractFeaturesInternal(bitmap, mConfig.width, mConfig.height);
+        mStatusStringBuilder.append("Inference:").append(String.format("(%dx%d)->(%dx%d) %d features", bitmap.getWidth(), bitmap.getHeight(), mConfig.width, mConfig.height, features.length)).append("\n");
         if (mConfig.projectionLength > vladAggregator.getVectorLength() || mConfig.projectionLength <= 0) {
             throw new Exception("Target vector length should be between 1 and " + vladAggregator.getVectorLength());
         }
         double[] vladVector = vladAggregator.aggregate(features);
 
-
         if (mConfig.doPCA && vladVector.length > mConfig.projectionLength) {
             // PCA projection
-
-            double[] projected = pca.sampleToEigenSpace(vladVector);
+            int vladLength = vladVector.length;
+            vladVector = pca.sampleToEigenSpace(vladVector);
             Log.i(TAG, "PCA performed.");
-            return projected;
+
+            mStatusStringBuilder.append("PCA");
+            if(mConfig.doWhitening){
+                mStatusStringBuilder.append("w");
+            }
+            mStatusStringBuilder.append(vladLength).append("to").append(vladVector.length).append("\n");
         } else {
             Log.i(TAG, "No PCA projection needed!");
-            return vladVector;
+        }
+
+        inferenceTime = System.currentTimeMillis() - start;
+        mStatusStringBuilder.append("Inference time:").append(inferenceTime).append("\n");
+        return vladVector;
+    }
+
+    private Answer search(double[] vladVector) throws Exception {
+        checkSetup();
+        Answer answer = index.computeNearestNeighbors(mConfig.nNearestNeighbors, vladVector);
+        mStatusStringBuilder.append(answer.toString());
+        return answer;
+    }
+
+    public void inferenceAndNNS(Bitmap bitmap) throws Exception{
+        double[] vector = inference(bitmap);
+        Answer answer = search(vector);
+        mAnnotations = mResult.addAnswerOrGetAnnotations(answer);
+        if(mAnnotations != null){
+            resultCounter++;
+            mResultStringBuilder.append("Result ").append(resultCounter).append("\n")
+                .append(mAnnotations.toString()).append("\n");
         }
     }
 
-    public Answer search(double[] vladVector) throws Exception {
-        checkSetup();
-        return index.computeNearestNeighbors(mConfig.nNearestNeighbors, vladVector);
+    public long getInferenceTime() {
+        return inferenceTime;
+    }
+
+    public String popResultString(){
+        String temp = mResultStringBuilder.toString();
+        mResultStringBuilder.setLength(0);
+        return temp;
+    }
+
+    public String popStatusString(){
+        String temp = mStatusStringBuilder.toString();
+        mStatusStringBuilder.setLength(0);
+        return temp;
     }
 }

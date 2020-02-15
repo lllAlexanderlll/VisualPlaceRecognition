@@ -4,6 +4,8 @@ import android.util.Log;
 
 import com.tud.alexw.visualplacerecognition.Utils;
 
+import java.io.File;
+import java.io.FileOutputStream;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
@@ -11,6 +13,8 @@ import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
+
+import androidx.annotation.NonNull;
 
 public class Annotations{
     private static String TAG = "Annotations";
@@ -20,10 +24,15 @@ public class Annotations{
     private int sumPitch = 0;
     private int sumYaw = 0;
     private List<Annotation> annotationList;
+    List<MajorityCount> majorityCounts;
+    String resultLabel;
+    float confidence;
+
 
 
     Annotations(){
         annotationList = new LinkedList<>();
+        majorityCounts = new LinkedList<>();
     }
 
     public void addAnotation(Annotation annotation){
@@ -53,29 +62,27 @@ public class Annotations{
 
     public String getLabelCount(){
         final String[] labels = new String[annotationList.size()];
-        int i=0;
-        for(Annotation annotation : annotationList){
-            labels[i] = annotation.label;
-            i++;
+        for(int i=0; i < annotationList.size(); i++){
+            labels[i] = annotationList.get(i).label;
         }
         List labelsList = Arrays.asList(labels);
         Set<String> labelsSet = new HashSet<String>(labelsList);
 
-        List<MajorityCount> majorityCounts = new LinkedList<>();
         for(String label : labelsSet){
             majorityCounts.add(new MajorityCount(Collections.frequency(labelsList, label), label));
         }
 
-        StringBuilder sb = new StringBuilder();
+        StringBuilder stringBuilder = new StringBuilder();
         Collections.sort(majorityCounts, new MajorityCountComparator());
         int sum = 0;
         for(MajorityCount majorityCount : majorityCounts){
             sum += majorityCount.count;
-            sb.append(majorityCount.label).append(": ")
+            stringBuilder.append(majorityCount.label).append(": ")
                 .append(Collections.frequency(labelsList, majorityCount.label)).append("\n");
         }
-        sb.append(Utils.blue(String.format("%s: %.2f%%",majorityCounts.get(0).label, ((float)majorityCounts.get(0).count / sum)*100)));
-        return sb.toString();
+        resultLabel = majorityCounts.get(0).label;
+        confidence = ((float)majorityCounts.get(0).count / sum);
+        return stringBuilder.toString();
     }
 
     public int[] getMeanPose(){
@@ -89,6 +96,30 @@ public class Annotations{
         }
         Log.e(TAG, "Couldn't calculate mean!");
         return null;
+    }
+
+    public String getResultLabel() {
+        return resultLabel;
+    }
+
+    public float getConfidence() {
+        return confidence;
+    }
+
+    @NonNull
+    @Override
+    public String toString() {
+        return getLabelCount() + Arrays.toString(getMeanPose());
+    }
+
+    public void saveResults(File file) throws Exception{
+        FileOutputStream stream = new FileOutputStream(file);
+        try {
+            stream.write(toString().getBytes());
+        }
+        finally {
+            stream.close();
+        }
     }
 
 }

@@ -56,7 +56,7 @@
         android:background="@drawable/rounded_corner"
         android:text="✓ Loomo"
         android:textStyle="bold|italic"
-        android:visibility="visible"
+        android:visibility="gone"
         app:layout_constraintStart_toStartOf="@+id/status"
         app:layout_constraintTop_toBottomOf="@+id/capture" />
 
@@ -72,5 +72,14 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toEndOf="@+id/status"
         app:layout_constraintTop_toBottomOf="@+id/imageView" />
+
+    <Button
+        android:id="@+id/test"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Test"
+        android:visibility="gone"
+        app:layout_constraintBottom_toBottomOf="@+id/status"
+        app:layout_constraintEnd_toStartOf="@+id/result" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

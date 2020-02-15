@@ -2,6 +2,8 @@ package com.tud.alexw.visualplacerecognition.result;
 
 import android.util.Log;
 
+import java.io.File;
+import java.io.FileOutputStream;
 import java.util.Arrays;
 
 import gr.iti.mklab.visual.utilities.Answer;

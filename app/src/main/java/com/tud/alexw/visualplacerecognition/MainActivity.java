@@ -4,7 +4,6 @@ import androidx.annotation.NonNull;
 import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.FileProvider;
-import gr.iti.mklab.visual.utilities.Answer;
 
 import android.Manifest;
 import android.content.Intent;
@@ -30,16 +29,13 @@ import com.segway.robot.sdk.vision.Vision;
 import com.tud.alexw.visualplacerecognition.capturing.ImageCapturer;
 import com.tud.alexw.visualplacerecognition.capturing.ImageCapturerAndroid;
 import com.tud.alexw.visualplacerecognition.capturing.ImageCapturerLoomo;
-import com.tud.alexw.visualplacerecognition.result.Annotations;
-import com.tud.alexw.visualplacerecognition.result.Result;
+import com.tud.alexw.visualplacerecognition.test.Tester;
 
 import java.io.File;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
-import java.util.Arrays;
 import java.util.Date;
 import java.util.Locale;
-
 
 public class MainActivity extends AppCompatActivity {
 
@@ -49,25 +45,24 @@ public class MainActivity extends AppCompatActivity {
     private Head mHead;
     VLADPQFramework mVLADPQFramework;
 
-    public boolean mRunningOnLoomo = false;
+    public boolean mRunningOnLoomo = true;
     private ImageCapturer mImageCapturer;
     private Bitmap mBitmap;
 
-    private Result mResult;
-    private int inferenceCounter = 0;
-    private Annotations mAnnotations;
     private Config mConfig;
 
     private TextView mStatusTextView;
     private TextView mResultTextView;
     private ImageView mImageView;
     private Button mCaptureButton;
+    private Button mTestButton;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        mTestButton = (Button) findViewById(R.id.test);
         mCaptureButton = (Button) findViewById(R.id.capture);
         mStatusTextView = (TextView) findViewById(R.id.status);
         mResultTextView = (TextView) findViewById(R.id.result);
@@ -76,6 +71,8 @@ public class MainActivity extends AppCompatActivity {
         try{
             mConfig = new Config(
                     getApplicationContext(),
+                    false,
+                    "captureHomeTest",
                     false,
                     960, //960x540 or 640x480
                     540,
@@ -111,7 +108,7 @@ public class MainActivity extends AppCompatActivity {
             return;
         }
 
-        mResult = new Result(mConfig.nMaxAnswers);
+
 
         // get Vision SDK instance
         mVision = Vision.getInstance();
@@ -122,6 +119,7 @@ public class MainActivity extends AppCompatActivity {
         mRunningOnLoomo &= mHead.bindService(getApplicationContext(), mServiceBindListenerHead);
         if (mRunningOnLoomo) {
             mImageCapturer = new ImageCapturerLoomo(mVision);
+            findViewById(R.id.loomoFlag).setVisibility(View.VISIBLE);
         } else {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
                 cameraPermission();
@@ -129,7 +127,6 @@ public class MainActivity extends AppCompatActivity {
             mImageCapturer = new ImageCapturerAndroid(this);
             mVision = null;
             mHead = null;
-            findViewById(R.id.loomoFlag).setVisibility(View.GONE);
         }
 
         //setup and check storage and files
@@ -141,7 +138,6 @@ public class MainActivity extends AppCompatActivity {
                 Utils.addText(mStatusTextView, "Stoarge structure is created now. Populate with codebook, index and pca files!");
                 return;
             }
-
         } catch (Exception e) {
             Utils.addTextRed(mStatusTextView, "Couldn't find or create private storage!");
             String msg = Log.getStackTraceString(e);
@@ -155,7 +151,18 @@ public class MainActivity extends AppCompatActivity {
         mResultTextView.setMovementMethod(new ScrollingMovementMethod());
         mCaptureButton.setEnabled(false);
         Toast.makeText(getApplicationContext(), "Loading index...", Toast.LENGTH_SHORT).show();
-        new AsyncSetup(mVLADPQFramework, mStatusTextView, mCaptureButton, getApplicationContext()).execute();
+        new AsyncSetup(mVLADPQFramework, mStatusTextView, mCaptureButton, mConfig.doRunTests, getApplicationContext()).execute();
+
+        if(mConfig.doRunTests){
+            mTestButton.setVisibility(View.VISIBLE);
+            mTestButton.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    Tester tester = new Tester("captureDatasetTest", getApplicationContext(), mVLADPQFramework, mStatusTextView);
+                    tester.test();
+                }
+            });
+        }
 
         mCaptureButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -168,8 +175,8 @@ public class MainActivity extends AppCompatActivity {
                         @Override
                         public void run() {
                             int[] yawMoves   = new int[]{90, 0, 0, -90};
-                            int[] pitchMoves = new int[]{0, 0, 0, 0}; //It's a lie!
-                            mConfig.nMaxAnswers = yawMoves.length; //TODO: remove?
+                            int[] pitchMoves = new int[]{0, 0, 0, 0}; //It's a lie! --> Camera in use is not influenced by pitch
+                            mConfig.nMaxAnswers = yawMoves.length;
                             int pitch_deg;
                             int yaw_deg;
                             if(mConfig.nMaxAnswers != yawMoves.length || yawMoves.length != pitchMoves.length){
@@ -198,7 +205,16 @@ public class MainActivity extends AppCompatActivity {
                                             Utils.addTextRed(mStatusTextView, "Capture: Bitmap is null!");
                                         } else {
                                             mImageView.setImageBitmap(mBitmap);
-                                            inferenceAndNNS();
+                                            try{
+                                                mVLADPQFramework.inferenceAndNNS(mBitmap);
+                                            }
+                                            catch (Exception e){
+                                                String msg = Log.getStackTraceString(e);
+                                                Utils.addTextRed(mStatusTextView, e.getMessage());
+                                                Log.e(TAG, e.getMessage() + "\n" + msg);
+                                            }
+                                            Utils.addTextNumbersBlue(mStatusTextView, mVLADPQFramework.popStatusString());
+                                            Utils.addTextNumbersBlue(mResultTextView, mVLADPQFramework.popResultString());
                                         }
                                     }
                                 });
@@ -278,7 +294,16 @@ public class MainActivity extends AppCompatActivity {
         } else {
             if (requestCode == REQUEST_IMAGE_CAPTURE && resultCode == RESULT_OK) {
                 setPic();
-                inferenceAndNNS();
+                try{
+                    mVLADPQFramework.inferenceAndNNS(mBitmap);
+                }
+                catch (Exception e){
+                    String msg = Log.getStackTraceString(e);
+                    Utils.addTextRed(mStatusTextView, e.getMessage());
+                    Log.e(TAG, e.getMessage() + "\n" + msg);
+                }
+                Utils.addTextNumbersBlue(mStatusTextView, mVLADPQFramework.popStatusString());
+                Utils.addTextNumbersBlue(mResultTextView, mVLADPQFramework.popResultString());
             }
         }
 
@@ -302,40 +327,6 @@ public class MainActivity extends AppCompatActivity {
             }
 
         }
-    }
-
-    public void inferenceAndNNS() {
-        try {
-            long start = System.currentTimeMillis();
-            double[] vladVector = mVLADPQFramework.inference(mBitmap);
-
-            Utils.addText(mStatusTextView, String.format("Vectorized image to VLAD vector! (Length: %d) %s", vladVector.length, Utils.blue((System.currentTimeMillis() - start) + " ms")));
-            start = System.currentTimeMillis();
-            Answer answer = mVLADPQFramework.search(vladVector);
-
-            Utils.addText(mStatusTextView, String.format("Search took %s", Utils.blue((System.currentTimeMillis() - start) + " ms")));
-            Utils.addText(mStatusTextView, answer.toString());
-            if(inferenceCounter % mConfig.nMaxAnswers == 0){
-                Utils.addText(mStatusTextView, "");
-            }
-            mAnnotations = mResult.addAnswerOrGetAnnotations(answer);
-            if(mAnnotations != null){
-                //Start majority count
-                if(inferenceCounter == 0){
-                    Utils.addTextRed(mResultTextView, "Results");
-                }
-                Utils.addTextRed(mResultTextView, String.format("#%d", inferenceCounter));
-                Utils.addText(mResultTextView, mAnnotations.getLabelCount());
-                Utils.addText(mResultTextView, "Mean pose: " + Arrays.toString(mAnnotations.getMeanPose()));
-                Utils.addTextRed(mStatusTextView, String.format("#%d end.", inferenceCounter));
-            }
-            inferenceCounter++;
-        } catch (Exception e) {
-            String msg = Log.getStackTraceString(e);
-            Utils.addTextRed(mStatusTextView, msg);
-            Log.e(TAG, e.getMessage() + "\n" + msg);
-        }
-
     }
 
     private static final int MY_CAMERA_REQUEST_CODE = 100;
