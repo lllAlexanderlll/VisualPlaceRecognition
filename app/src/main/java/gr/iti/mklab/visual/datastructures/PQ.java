@@ -273,11 +273,13 @@ public class PQ extends AbstractSearchStructure {
 
 	}
 
+	@Override
 	protected BoundedPriorityQueue<Result> computeNearestNeighborsInternal(int k, double[] query)
 			throws Exception {
 		return computeKnnADC(k, query);
 	}
 
+	@Override
 	protected BoundedPriorityQueue<Result> computeNearestNeighborsInternal(int k, int internalId)
 			throws Exception {
 		return computeKnnSDC(k, internalId);

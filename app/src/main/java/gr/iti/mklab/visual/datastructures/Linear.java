@@ -66,9 +66,13 @@ public class Linear extends AbstractSearchStructure {
 	 *            The initial value of the load counter
 	 * @throws Exception
 	 */
+
+
+
 	public Linear(int vectorLength, int maxNumVectors, boolean readOnly, File BDBEnvHome,
-			boolean loadIndexInMemory, boolean countSizeOnLoad, int loadCounter) throws Exception {
-		super(vectorLength, maxNumVectors, readOnly, countSizeOnLoad, loadCounter, loadIndexInMemory);
+			boolean loadIndexInMemory, boolean countSizeOnLoad, int loadCounter, long cacheSize) throws Exception {
+		super(vectorLength, maxNumVectors, readOnly, countSizeOnLoad, loadCounter, loadIndexInMemory,
+				cacheSize);
 		createOrOpenBDBEnvAndDbs(BDBEnvHome);
 		// configuration of the persistent index
 		DatabaseConfig dbConf = new DatabaseConfig();
@@ -97,8 +101,8 @@ public class Linear extends AbstractSearchStructure {
 	 *            The BDB environment home directory
 	 * @throws Exception
 	 */
-	public Linear(int vectorLength, int maxNumVectors, boolean readOnly, File BDBEnvHome) throws Exception {
-		this(vectorLength, maxNumVectors, readOnly, BDBEnvHome, true, true, 0);
+	public Linear(int vectorLength, int maxNumVectors, boolean readOnly, File BDBEnvHome, long cacheSize_mb) throws Exception {
+		this(vectorLength, maxNumVectors, readOnly, BDBEnvHome, true, true, 0, cacheSize_mb);
 	}
 
 	/**

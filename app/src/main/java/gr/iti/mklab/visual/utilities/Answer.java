@@ -63,9 +63,13 @@ public class Answer {
 			return "Empty Answer";
 		}
 		String text = "";
+		String breakLine = " <br/>";
 		int i = 0;
 		for(String id : ids){
-			text += String.format("%d. %s %f <br/>", i, id, distances[i]);
+			if(i == ids.length - 1){
+				breakLine = "";
+			}
+			text += String.format("%d. %s %f" + breakLine, i, id, distances[i]);
 			i++;
 		}
 		return text;

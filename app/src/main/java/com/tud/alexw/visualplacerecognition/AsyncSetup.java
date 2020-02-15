@@ -5,9 +5,6 @@ import android.os.AsyncTask;
 import android.util.Log;
 import android.widget.Button;
 import android.widget.TextView;
-import android.widget.Toast;
-
-import java.io.File;
 
 //Params, the type of the parameters sent to the task upon execution.
 //Progress, the type of the progress units published during the background computation.
@@ -33,8 +30,13 @@ class AsyncSetup extends AsyncTask<Void, Void, String> {
 
             long start = System.currentTimeMillis();
             mVladpqFramework.setup();
-            mVladpqFramework.loadPQIndex();
-            return "Pipeline setup successful: " + Utils.blue((System.currentTimeMillis() - start) + " ms");
+            if(mVladpqFramework.mConfig.doPQ){
+                mVladpqFramework.loadPQIndex();
+            }
+            else{
+                mVladpqFramework.loadLinearIndex();
+            }
+            return (mVladpqFramework.mConfig.doPQ ? "PQ" : "Linear") + " index loaded in " + Utils.blue((System.currentTimeMillis() - start) + " ms");
 
 
         }catch (Exception e){
@@ -48,10 +50,10 @@ class AsyncSetup extends AsyncTask<Void, Void, String> {
 
          mButton.setEnabled(!result.isEmpty());
          if(result.startsWith("Pipeline setup successful")){
-             Utils.addStatus(mTextView, result);
+             Utils.addText(mTextView, result);
          }
          else{
-             Utils.addStatusRed(mTextView, result);
+             Utils.addTextRed(mTextView, result);
          }
 
     }

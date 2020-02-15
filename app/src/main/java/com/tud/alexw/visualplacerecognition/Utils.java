@@ -6,8 +6,11 @@ import android.text.Html;
 import android.util.Log;
 import android.widget.TextView;
 
+import com.segway.robot.sdk.locomotion.head.Head;
+
 import java.io.File;
 import java.io.IOException;
+import java.util.LinkedList;
 
 public class Utils {
 
@@ -33,17 +36,22 @@ public class Utils {
         }
     }
 
-    public static void addStatus(TextView textView, String msg){
+    public static <T> Object[] linkedListToArray(LinkedList<T> linkedList){
+        Object[] array = linkedList.toArray();
+        return array;
+    }
+
+    public static void addText(TextView textView, String msg){
         msg = msg.replace("\n", "<br/>");
         textView.append(Html.fromHtml("<br/>" + msg));
     }
 
-    public static void addStatusRed(TextView textView, String msg){
+    public static void addTextRed(TextView textView, String msg){
         msg = msg.replace("\n", "<br/>");
         textView.append(Html.fromHtml( "<br/>" + red(msg)));
     }
 
-    public static void addStatusBlue(TextView textView, String msg){
+    public static void addTextBlue(TextView textView, String msg){
         msg = msg.replace("\n", "<br/>");
         textView.append(Html.fromHtml("<br/>" + blue(msg)));
     }
@@ -71,4 +79,23 @@ public class Utils {
         }
         return result;
     }
+
+    public static void moveHead(Head head, int yaw_deg, int pitch_deg){
+        if(yaw_deg > 144 || yaw_deg < -144 || pitch_deg < 0 || pitch_deg > 174){
+            Log.e(TAG, String.format("Yaw: %d not in [-144, 144] or pitch: %d not in [0, 174]", yaw_deg, pitch_deg));
+            return;
+        }
+
+        head.setHeadJointYaw(degreeToRad(yaw_deg));
+        head.setWorldPitch(degreeToRad(pitch_deg));
+        Log.i(TAG,String.format("Current motor pitch and yaw values: %f, %f", head.getHeadJointYaw().getAngle(), head.getWorldPitch().getAngle()));
+        Log.i(TAG,String.format("Set motor pitch and yaw values: %f, %f", degreeToRad(yaw_deg), degreeToRad(pitch_deg)));
+        while (
+            !(isClose(radToDegree(head.getHeadJointYaw().getAngle()), yaw_deg) &&
+            isClose(radToDegree(head.getWorldPitch().getAngle()), pitch_deg))
+        ) {
+            Log.i(TAG, String.format("Waiting for Head to turn from (%d, %d) to (%d, %d)", radToDegree(head.getHeadJointYaw().getAngle()), radToDegree(head.getWorldPitch().getAngle()), yaw_deg, pitch_deg));
+        }
+    }
+    
 }

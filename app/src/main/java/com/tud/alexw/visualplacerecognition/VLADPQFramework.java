@@ -7,6 +7,8 @@ import java.io.File;
 
 import gr.iti.mklab.visual.aggregation.AbstractFeatureAggregator;
 import gr.iti.mklab.visual.aggregation.VladAggregatorMultipleVocabularies;
+import gr.iti.mklab.visual.datastructures.AbstractSearchStructure;
+import gr.iti.mklab.visual.datastructures.Linear;
 import gr.iti.mklab.visual.datastructures.PQ;
 import gr.iti.mklab.visual.dimreduction.PCA;
 import gr.iti.mklab.visual.extraction.AbstractFeatureExtractor;
@@ -20,10 +22,10 @@ public class VLADPQFramework {
     VladAggregatorMultipleVocabularies vladAggregator;
     SURFExtractor surfExtractor;
     PCA pca;
-    PQ pq;
+    AbstractSearchStructure index;
     boolean mIsSetup;
-    Boolean doPCA;
     Config mConfig;
+    long cacheSize_mb = 10;
 
     VLADPQFramework(Config config) {
         mIsSetup = false;
@@ -36,11 +38,10 @@ public class VLADPQFramework {
         vladAggregator = new VladAggregatorMultipleVocabularies(codebooks);
 
         int initialLength = mConfig.codebookSizes.size() * mConfig.codebookSizes.get(0) * AbstractFeatureExtractor.SURFLength;
-        if (mConfig.projectionLength < initialLength) {
+        if (mConfig.doPCA && mConfig.projectionLength < initialLength) {
             pca = new PCA(mConfig.projectionLength, 1, initialLength, mConfig.doWhitening);
             pca.loadPCAFromFile(mConfig.pcaFile);
         }
-        doPCA = null;
         mIsSetup = true;
     }
 
@@ -52,13 +53,18 @@ public class VLADPQFramework {
 
     public void loadPQIndex() throws Exception {
         checkSetup();
-        long cacheSize_mb = 10;
-        pq = new PQ(4096, 245, false, mConfig.pqIndexDir, 8, 10, PQ.TransformationType.None, true, 0, true, cacheSize_mb);
+
+        index = new PQ(mConfig.vectorLength, mConfig.maxIndexSize, mConfig.readOnly, mConfig.pqIndexDir, mConfig.numSubVectors, mConfig.numProductCentroids, PQ.TransformationType.None, true, 0, true, cacheSize_mb);
 
         Log.i(TAG, "Loading the PQ from file:");
-        pq.loadProductQuantizer(mConfig.pqCodebookFile);
-        Log.i(TAG, pq.toString());
+        ((PQ) index).loadProductQuantizer(mConfig.pqCodebookFile);
+        Log.i(TAG, ((PQ) index).toString());
+    }
 
+    public void loadLinearIndex() throws Exception {
+        checkSetup();
+        index = new Linear(mConfig.vectorLength, mConfig.maxIndexSize, mConfig.readOnly, mConfig.linearIndexDir, true, true, 0, cacheSize_mb);
+        Log.i(TAG, "Linear index loaded");
     }
 
     public double[] inference(Bitmap bitmap) throws Exception {
@@ -80,8 +86,8 @@ public class VLADPQFramework {
         }
     }
 
-    public Answer search(int k, double[] vladVector) throws Exception {
+    public Answer search(double[] vladVector) throws Exception {
         checkSetup();
-        return pq.computeNearestNeighbors(k, vladVector);
+        return index.computeNearestNeighbors(mConfig.nNearestNeighbors, vladVector);
     }
 }

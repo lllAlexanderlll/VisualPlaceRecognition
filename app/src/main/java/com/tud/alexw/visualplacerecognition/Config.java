@@ -28,24 +28,58 @@ public class Config {
     public File pqIndexDir;
     public File pqCodebookFile;
 
+    int nNearestNeighbors;
+    int nMaxAnswers;
+    int numSubVectors,  numProductCentroids;
+    int maxIndexSize;
+    boolean readOnly;
+    int vectorLength;
+    boolean doPQ;
+
+
     StringBuilder stringBuilder;
 
 
-    public Config(Context context, int width, int height, String[] codebookFilePaths, Integer[] codebookSizes, boolean doPCA, String pcaFilePath, int projectionLength, boolean doWhitening, String linearIndexDirPath, String pqIndexDirPath, String pqCodebookFilePath) throws IOException {
+    public Config(
+            Context context,
+            boolean doPQ,
+            int width, int height, //image
+            String[] codebookFilePaths, Integer[] codebookSizes, //codebook
+            boolean doPCA, String pcaFilePath, int projectionLength, boolean doWhitening, //pca
+            String linearIndexDirPath, //linear index
+            String pqIndexDirPath, String pqCodebookFilePath, int numSubVectors, int numProductCentroids,//PQ
+            int vectorLength, int maxIndexSize, // index general
+            boolean readOnly, //TODO  test this
+            int nNearestNeighbors,
+            int nMaxAnswers) throws IOException {
 
         stringBuilder = new StringBuilder();
-        stringBuilder.append("Configuration:\n");
-        stringBuilder.append(String.format("Image size: %dx%d", width, height));
-        stringBuilder.append("Codebook file paths: " + Arrays.toString(codebookFilePaths)  + "\n");
-        stringBuilder.append("Codebook sizes: " + Arrays.toString(codebookSizes) + "\n");
-        stringBuilder.append("doPCA: " + doPCA + "\n");
-        stringBuilder.append("Projection length: " + projectionLength + "\n");
-        stringBuilder.append("Whitening: " + doWhitening + "\n");
-        stringBuilder.append("PCA path: " + pcaFilePath + "\n");
-        stringBuilder.append("Linear index path: " + linearIndexDirPath + "\n");
-        stringBuilder.append("PQ index path: " + pqIndexDirPath + "\n");
-        stringBuilder.append("PQ codebook path: " + pqCodebookFilePath + "\n");
+        stringBuilder.append("Configuration:\n")
+        .append(String.format("Image size: %dx%d", width, height))
+        .append("Codebook file paths: ").append(Arrays.toString(codebookFilePaths)).append("\n")
+        .append("Codebook sizes: ").append(Arrays.toString(codebookSizes)).append("\n")
+        .append("doPCA: ").append(doPCA).append("\n")
+        .append("Projection length: ").append(projectionLength).append("\n")
+        .append("Whitening: ").append(doWhitening).append("\n")
+        .append("PCA path: ").append(pcaFilePath).append("\n")
+        .append("Max index size: ").append(maxIndexSize).append("/n")
+        .append("Index is read only: ").append(readOnly).append("/n")
+        .append("Index to load:").append(doPQ ? "PQ" : "Linear").append("/n")
+        .append("Linear index path: ").append(linearIndexDirPath).append("\n")
+        .append("PQ index path: ").append(pqIndexDirPath).append("\n")
+        .append("PQ codebook path: ").append(pqCodebookFilePath).append("\n")
+        .append("Number of subvectors: ").append(numSubVectors).append("/n")
+        .append("Number of centroids per subvector: ").append(numProductCentroids).append("/n")
+        .append("Number of nearest neighbors to retrieve: ").append(nNearestNeighbors).append("/n")
+        .append("Number of maximum Answers in Majority Count: ").append(nMaxAnswers).append("\n");
 
+        this.nNearestNeighbors = nNearestNeighbors;
+        this.doPQ = doPQ;
+        this.maxIndexSize = maxIndexSize;
+        this.numSubVectors = numSubVectors;
+        this.readOnly = readOnly;
+        this.numProductCentroids = numProductCentroids;
+        this.vectorLength = vectorLength;
         this.width = width;
         this.height = height;
         this.doPCA = doPCA;
@@ -63,6 +97,8 @@ public class Config {
         this.linearIndexDir = linearIndexDirPath.isEmpty() ? null : new File(context.getExternalFilesDir(null), linearIndexDirPath);
         this.pqIndexDir = pqIndexDirPath.isEmpty() ? null : new File(context.getExternalFilesDir(null), pqIndexDirPath);
         this.pqCodebookFile = pqCodebookFilePath.isEmpty() ? null : new File(context.getExternalFilesDir(null), pqCodebookFilePath);
+
+        this.nMaxAnswers = nMaxAnswers;
 
         if(!codebookFiles.get(0).exists()){
             throw new IOException("Required files not found! \n" + toString());

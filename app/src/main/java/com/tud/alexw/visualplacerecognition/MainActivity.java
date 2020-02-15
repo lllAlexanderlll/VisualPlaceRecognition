@@ -7,7 +7,6 @@ import androidx.core.content.FileProvider;
 import gr.iti.mklab.visual.utilities.Answer;
 
 import android.Manifest;
-import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.content.res.Configuration;
@@ -16,7 +15,6 @@ import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
-import android.os.Environment;
 import android.provider.MediaStore;
 import android.text.method.ScrollingMovementMethod;
 import android.util.Log;
@@ -32,7 +30,9 @@ import com.segway.robot.sdk.vision.Vision;
 
 import java.io.File;
 import java.io.IOException;
+import java.text.Format;
 import java.text.SimpleDateFormat;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.Locale;
 
@@ -45,11 +45,17 @@ public class MainActivity extends AppCompatActivity {
     private Head mHead;
     VLADPQFramework mVLADPQFramework;
 
-    public boolean mRunningOnLoomo = true;
+    public boolean mRunningOnLoomo = false;
     private ImageCapturer mImageCapturer;
     private Bitmap mBitmap;
 
-    private TextView mTextView;
+    private Result mResult;
+    private int inferenceCounter = 0;
+    private Annotations mAnnotations;
+    private Config mConfig;
+
+    private TextView mStatusTextView;
+    private TextView mResultTextView;
     private ImageView mImageView;
     private Button mCaptureButton;
 
@@ -59,8 +65,49 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         mCaptureButton = (Button) findViewById(R.id.capture);
-        mTextView = (TextView) findViewById(R.id.status);
+        mStatusTextView = (TextView) findViewById(R.id.status);
+        mResultTextView = (TextView) findViewById(R.id.result);
         mImageView = (ImageView) findViewById(R.id.imageView);
+
+        try{
+            mConfig = new Config(
+                    getApplicationContext(),
+                    false,
+                    960, //960x540 or 640x480
+                    540,
+                    new String[]{
+                        "codebooks/codebook_split_0.csv",
+                        "codebooks/codebook_split_1.csv",
+                        "codebooks/codebook_split_2.csv",
+                        "codebooks/codebook_split_3.csv",
+                    },
+                    new Integer[]{128,128,128,128},
+                    true,
+                    "pca96/pca_32768_to_96.txt",
+                    96,
+                    true,
+                    "linearIndex4Codebooks128WithPCAw96/BDB_518400_surf_32768to96w/", //"linearIndex4Codebooks128WithPCA96/BDB_518400_surf_32768to96/", //linearIndex4Codebooks128WithPCAw96/BDB_518400_surf_32768to96w/
+                    "pqIndex4Codebooks128WithPCAw96/", //"pqIndex4Codebooks128WithPCA96/", //pqIndex4Codebooks128WithPCAw96/
+                    "pqIndex4Codebooks128WithPCAw96/pq_96_8x3_1244.csv", //"pqIndex4Codebooks128WithPCA96/pq_96_8x3_1244.csv", //pqIndex4Codebooks128WithPCAw96/pq_96_8x3_1244.csv
+                    8,
+                    10,
+                    96,
+                    1244,
+                    false,
+                    10,
+                    2
+            );
+            Log.i(TAG, mConfig.toString());
+        }
+        catch (Exception e) {
+            Utils.addTextRed(mStatusTextView, "Setup error!");
+            String msg = Log.getStackTraceString(e);
+            Utils.addTextRed(mStatusTextView, e.getMessage());
+            Log.e(TAG, e.getMessage() + "\n" + msg);
+            return;
+        }
+
+        mResult = new Result(mConfig.nMaxAnswers);
 
         // get Vision SDK instance
         mVision = Vision.getInstance();
@@ -84,73 +131,75 @@ public class MainActivity extends AppCompatActivity {
         //setup and check storage and files
         try {
             if(Utils.isStorageStructureCreated(getApplicationContext())){
-                mVLADPQFramework = new VLADPQFramework(
-                        new Config(
-                                getApplicationContext(),
-                                960,
-                                540,
-                                new String[]{"codebook/features.csv_codebook-64A-64C-100I-1S_power+l2.csv"},
-                                new Integer[]{64},
-                                true,
-                                "pca/linearIndexBDB_307200_surf_4096pca_245_128_10453ms.txt",
-                                4096,
-                                true,
-                                "linearIndex/BDB_307200_surf_4096/",
-                                "pqIndex/",
-                                "pqCodebook/pq_4096_8x3_244.csv"
-                        )
-                );
+                mVLADPQFramework = new VLADPQFramework(mConfig);
             }
             else{
-                Utils.addStatus(mTextView, "Stoarge structure is created now. Populate with codebook, index and pca files!");
+                Utils.addText(mStatusTextView, "Stoarge structure is created now. Populate with codebook, index and pca files!");
                 return;
             }
 
         } catch (Exception e) {
-            Utils.addStatusRed(mTextView, "Couldn't find or create private storage!");
+            Utils.addTextRed(mStatusTextView, "Couldn't find or create private storage!");
             String msg = Log.getStackTraceString(e);
-            Utils.addStatusRed(mTextView, e.getMessage());
+            Utils.addTextRed(mStatusTextView, e.getMessage());
             Log.e(TAG, e.getMessage() + "\n" + msg);
             return;
         }
 
 
-        mTextView.setMovementMethod(new ScrollingMovementMethod());
+        mStatusTextView.setMovementMethod(new ScrollingMovementMethod());
+        mResultTextView.setMovementMethod(new ScrollingMovementMethod());
         mCaptureButton.setEnabled(false);
-        Toast.makeText(getApplicationContext(), "Loading index...", Toast.LENGTH_LONG).show();
-        new AsyncSetup(mVLADPQFramework, mTextView, mCaptureButton, getApplicationContext()).execute();
+        Toast.makeText(getApplicationContext(), "Loading index...", Toast.LENGTH_SHORT).show();
+        new AsyncSetup(mVLADPQFramework, mStatusTextView, mCaptureButton, getApplicationContext()).execute();
 
         mCaptureButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 if (mRunningOnLoomo) {
+                    mHead.setWorldPitch(Utils.degreeToRad(45));
+                    Utils.moveHead(mHead, 0, 0);
+
                     new Thread(new Runnable() {
                         @Override
                         public void run() {
-
-                            mHead.resetOrientation();
-                            try{
-                                mBitmap = mImageCapturer.captureImage();
+                            int[] yawMoves   = new int[]{90, 0, 0, -90};
+                            int[] pitchMoves = new int[]{0, 0, 0, 0}; //It's a lie!
+                            mConfig.nMaxAnswers = yawMoves.length; //TODO: remove?
+                            int pitch_deg;
+                            int yaw_deg;
+                            if(mConfig.nMaxAnswers != yawMoves.length || yawMoves.length != pitchMoves.length){
+                                Log.e(TAG, "Check 'mConfig.nMaxAnswers != yawMoves.length || yawMoves.length != pitchMoves.length' failed");
+                                return;
                             }
-                            catch (Exception e){
-                                Log.e("Capture:", Log.getStackTraceString(e));
-                            }
 
-                            //update UI and start inference
-                            runOnUiThread(new Runnable() {
-                                @Override
-                                public void run() {
-                                    mTextView.setText("");
-                                    if (mBitmap == null) {
-                                        Utils.addStatusRed(mTextView, "Capture: Bitmap is null!");
-                                    } else {
-                                        mImageView.setImageBitmap(mBitmap);
-                                        inference();
-                                    }
+                            for (int i = 0; i < mConfig.nMaxAnswers; i++) {
+
+                                yaw_deg = yawMoves[i];
+                                pitch_deg = pitchMoves[i];
+                                Log.i(TAG, String.format("Image %d %d %d",i, yaw_deg, pitch_deg));
+                                Utils.moveHead(mHead, yaw_deg, pitch_deg);
+                                try {
+                                    mBitmap = mImageCapturer.captureImage();
+                                } catch (Exception e) {
+                                    Log.e("Capture:", Log.getStackTraceString(e));
                                 }
-                            });
+
+                                //update UI and start inferenceAndNNS
+                                runOnUiThread(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        mStatusTextView.setText("");
+                                        if (mBitmap == null) {
+                                            Utils.addTextRed(mStatusTextView, "Capture: Bitmap is null!");
+                                        } else {
+                                            mImageView.setImageBitmap(mBitmap);
+                                            inferenceAndNNS();
+                                        }
+                                    }
+                                });
+                            }
                             mHead.resetOrientation();
-                            mHead.setWorldPitch(Utils.degreeToRad(45));
                         }
                     }).start();
                 } else {
@@ -225,7 +274,7 @@ public class MainActivity extends AppCompatActivity {
         } else {
             if (requestCode == REQUEST_IMAGE_CAPTURE && resultCode == RESULT_OK) {
                 setPic();
-                inference();
+                inferenceAndNNS();
             }
         }
 
@@ -251,20 +300,35 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    public void inference() {
+    public void inferenceAndNNS() {
         try {
             long start = System.currentTimeMillis();
             double[] vladVector = mVLADPQFramework.inference(mBitmap);
-            Utils.addStatus(mTextView, String.format("Vectorized image to VLAD vector! (Length: %d) %s", vladVector.length, Utils.blue((System.currentTimeMillis() - start) + " ms")));
 
+            Utils.addText(mStatusTextView, String.format("Vectorized image to VLAD vector! (Length: %d) %s", vladVector.length, Utils.blue((System.currentTimeMillis() - start) + " ms")));
             start = System.currentTimeMillis();
-            Answer answer = mVLADPQFramework.search(5, vladVector);
-            Utils.addStatusBlue(mTextView, "Search result:");
-            Utils.addStatus(mTextView, answer.toString());
-            Utils.addStatus(mTextView, String.format("Search took %s", Utils.blue((System.currentTimeMillis() - start) + " ms")));
+            Answer answer = mVLADPQFramework.search(vladVector);
+
+            Utils.addText(mStatusTextView, String.format("Search took %s", Utils.blue((System.currentTimeMillis() - start) + " ms")));
+            Utils.addText(mStatusTextView, answer.toString());
+            if(inferenceCounter % mConfig.nMaxAnswers == 0){
+                Utils.addText(mStatusTextView, "");
+            }
+            mAnnotations = mResult.addAnswerOrGetAnnotations(answer);
+            if(mAnnotations != null){
+                //Start majority count
+                if(inferenceCounter == 0){
+                    Utils.addTextRed(mResultTextView, "Results");
+                }
+                Utils.addTextRed(mResultTextView, String.format("#%d", inferenceCounter));
+                Utils.addText(mResultTextView, mAnnotations.getLabelCount());
+                Utils.addText(mResultTextView, "Mean pose: " + Arrays.toString(mAnnotations.getMeanPose()));
+                Utils.addTextRed(mStatusTextView, String.format("#%d end.", inferenceCounter));
+            }
+            inferenceCounter++;
         } catch (Exception e) {
             String msg = Log.getStackTraceString(e);
-            Utils.addStatusRed(mTextView, msg);
+            Utils.addTextRed(mStatusTextView, msg);
             Log.e(TAG, e.getMessage() + "\n" + msg);
         }
 
@@ -385,7 +449,6 @@ public class MainActivity extends AppCompatActivity {
             mHead.setMode(mode);
             Log.d(TAG, "Head onBind() called. " + (mode > Head.MODE_SMOOTH_TACKING ? "lock orientation" : "smooth tracking") + " mode");
             mHead.resetOrientation();
-            mHead.setWorldPitch(Utils.degreeToRad(45));
         }
 
         @Override
