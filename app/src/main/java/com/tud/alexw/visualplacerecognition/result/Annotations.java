@@ -112,14 +112,5 @@ public class Annotations{
         return getLabelCount() + Arrays.toString(getMeanPose());
     }
 
-    public void saveResults(File file) throws Exception{
-        FileOutputStream stream = new FileOutputStream(file);
-        try {
-            stream.write(toString().getBytes());
-        }
-        finally {
-            stream.close();
-        }
-    }
 
 }

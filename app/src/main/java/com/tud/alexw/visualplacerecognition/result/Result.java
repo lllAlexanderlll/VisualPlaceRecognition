@@ -17,7 +17,7 @@ public class Result {
 
     public Result(int nMaxAnswers){
         if(nMaxAnswers <= 0){
-            throw new IllegalArgumentException("nMaxAnswers must be greater than zero!");
+            throw new IllegalArgumentException("nQueriesForResult must be greater than zero!");
         }
         answers = new Answer[nMaxAnswers];
         counter = 0;

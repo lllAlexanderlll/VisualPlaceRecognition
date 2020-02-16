@@ -19,6 +19,9 @@ public class Tester {
     // resultCount, rank, inferenceTime, searchTime, label, x, y, yaw, pitch
 
     // TODO: calc with Python:
+    // need to know:
+    // precision: OutOfRetrievedSet(TP/(TP + FP))
+    // for recall: FN (misses) --> number of place representations in dataset is needed in python script
     // precision, recall, recall@k(-NN), precision@k(-NN)
     // averageRecall, averagePrecision, averageRecall@k(-NN), averagePrecision@k(-NN)
     // Single System wide number: mAP
@@ -26,36 +29,14 @@ public class Tester {
     TextView mTextView;
     VLADPQFramework mVLADPQFramework;
     Context mContext;
-    String mConfigName;
-    SharedPreferences mSharedPref;
 
-    public Tester(String configName, Context context,VLADPQFramework vladpqFramework, TextView textView){
+    public Tester(Context context,VLADPQFramework vladpqFramework, TextView textView){
         mTextView = textView;
         mVLADPQFramework = vladpqFramework;
-        mConfigName = configName;
         mContext = context;
-        createConfig(configName);
-    }
-
-
-    private  void createConfig(String name){
-        mSharedPref = mContext.getSharedPreferences(name, Context.MODE_PRIVATE);
-
-        String key = "dataSetPath";
-        if(!mSharedPref.contains(key)){
-            mSharedPref.edit().putString(key,"captureHomeTest").apply();
-        }
-
-        key = "kNN";
-        if(!mSharedPref.contains(key)) {
-            mSharedPref.edit().putInt(key, mVLADPQFramework.mConfig.maxIndexSize).apply();
-        }
-
     }
 
     public void test() {
-       mTextView.append("kNN:" + mSharedPref.getInt("kNN", 0));
-       mTextView.append("datasetPath:" + mSharedPref.getInt("dataSetPath", 0));
         // create testID
         // dump config
 

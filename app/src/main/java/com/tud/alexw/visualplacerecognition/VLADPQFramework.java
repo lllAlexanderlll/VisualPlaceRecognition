@@ -41,7 +41,7 @@ public class VLADPQFramework {
     VLADPQFramework(Config config) {
         mIsSetup = false;
         mConfig = config;
-        mResult = new Result(mConfig.nMaxAnswers);
+        mResult = new Result(mConfig.getnQueriesForResult());
         mResultStringBuilder = new StringBuilder();
         mStatusStringBuilder = new StringBuilder();
         mStringBuilderCSV = new StringBuilder();
@@ -49,13 +49,13 @@ public class VLADPQFramework {
 
     public void setup() throws Exception {
         surfExtractor = new SURFExtractor();
-        codebooks = AbstractFeatureAggregator.readQuantizers(mConfig.codebookFiles, mConfig.codebookSizes, AbstractFeatureExtractor.SURFLength);
+        codebooks = AbstractFeatureAggregator.readQuantizers(mConfig.getCodebookFiles(), mConfig.getCodebookSizes(), AbstractFeatureExtractor.SURFLength);
         vladAggregator = new VladAggregatorMultipleVocabularies(codebooks);
 
-        int initialLength = mConfig.codebookSizes.size() * mConfig.codebookSizes.get(0) * AbstractFeatureExtractor.SURFLength;
-        if (mConfig.doPCA && mConfig.projectionLength < initialLength) {
-            pca = new PCA(mConfig.projectionLength, 1, initialLength, mConfig.doWhitening);
-            pca.loadPCAFromFile(mConfig.pcaFile);
+        int initialLength = mConfig.getCodebookSizes().size() * mConfig.getCodebookSizes().get(0) * AbstractFeatureExtractor.SURFLength;
+        if (mConfig.isDoPCA() && mConfig.getProjectionLength()< initialLength) {
+            pca = new PCA(mConfig.getProjectionLength(), 1, initialLength, mConfig.isDoWhitening());
+            pca.loadPCAFromFile(mConfig.getPcaFile());
         }
         mIsSetup = true;
     }
@@ -69,16 +69,16 @@ public class VLADPQFramework {
     public void loadPQIndex() throws Exception {
         checkSetup();
 
-        index = new PQ(mConfig.vectorLength, mConfig.maxIndexSize, mConfig.readOnly, mConfig.pqIndexDir, mConfig.numSubVectors, mConfig.numProductCentroids, PQ.TransformationType.None, true, 0, true, cacheSize_mb);
+        index = new PQ(mConfig.getVectorLength(), mConfig.getIndexSize(), mConfig.isReadOnly(), mConfig.getPqIndexDir(), mConfig.getnSubVectors(), mConfig.getnProductCentroids(), PQ.TransformationType.None, true, 0, true, cacheSize_mb);
 
         Log.i(TAG, "Loading the PQ from file:");
-        ((PQ) index).loadProductQuantizer(mConfig.pqCodebookFile);
+        ((PQ) index).loadProductQuantizer(mConfig.getPqCodebookFile());
         Log.i(TAG, ((PQ) index).toString());
     }
 
     public void loadLinearIndex() throws Exception {
         checkSetup();
-        index = new Linear(mConfig.vectorLength, mConfig.maxIndexSize, mConfig.readOnly, mConfig.linearIndexDir, true, true, 0, cacheSize_mb);
+        index = new Linear(mConfig.getVectorLength(), mConfig.getIndexSize(), mConfig.isReadOnly(), mConfig.getLinearIndexDir(), true, true, 0, cacheSize_mb);
         Log.i(TAG, "Linear index loaded");
     }
 
@@ -86,21 +86,21 @@ public class VLADPQFramework {
         long start = System.currentTimeMillis();
         checkSetup();
 
-        double[][] features = surfExtractor.extractFeaturesInternal(bitmap, mConfig.width, mConfig.height);
-        mStatusStringBuilder.append("Inference:").append(String.format("(%dx%d)->(%dx%d) %d features", bitmap.getWidth(), bitmap.getHeight(), mConfig.width, mConfig.height, features.length)).append("\n");
-        if (mConfig.projectionLength > vladAggregator.getVectorLength() || mConfig.projectionLength <= 0) {
+        double[][] features = surfExtractor.extractFeaturesInternal(bitmap, mConfig.getWidth(), mConfig.getHeight());
+        mStatusStringBuilder.append("Inference:").append(String.format("(%dx%d)->(%dx%d) %d features", bitmap.getWidth(), bitmap.getHeight(), mConfig.getWidth(), mConfig.getHeight(), features.length)).append("\n");
+        if (mConfig.getProjectionLength()> vladAggregator.getVectorLength() || mConfig.getProjectionLength() <= 0) {
             throw new Exception("Target vector length should be between 1 and " + vladAggregator.getVectorLength());
         }
         double[] vladVector = vladAggregator.aggregate(features);
 
-        if (mConfig.doPCA && vladVector.length > mConfig.projectionLength) {
+        if (mConfig.isDoPCA() && vladVector.length > mConfig.getProjectionLength()) {
             // PCA projection
             int vladLength = vladVector.length;
             vladVector = pca.sampleToEigenSpace(vladVector);
             Log.i(TAG, "PCA performed.");
 
             mStatusStringBuilder.append("PCA");
-            if(mConfig.doWhitening){
+            if(mConfig.isDoWhitening()){
                 mStatusStringBuilder.append("w");
             }
             mStatusStringBuilder.append(vladLength).append("to").append(vladVector.length).append("\n");
@@ -115,7 +115,7 @@ public class VLADPQFramework {
 
     private Answer search(double[] vladVector) throws Exception {
         checkSetup();
-        Answer answer = index.computeNearestNeighbors(mConfig.nNearestNeighbors, vladVector);
+        Answer answer = index.computeNearestNeighbors(mConfig.getnNearestNeighbors(), vladVector);
         mStatusStringBuilder.append(answer.toString());
         return answer;
     }

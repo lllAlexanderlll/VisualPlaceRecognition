@@ -73,6 +73,7 @@ public class MainActivity extends AppCompatActivity {
                     getApplicationContext(),
                     false,
                     "captureHomeTest",
+                    "",
                     false,
                     960, //960x540 or 640x480
                     540,
@@ -151,14 +152,14 @@ public class MainActivity extends AppCompatActivity {
         mResultTextView.setMovementMethod(new ScrollingMovementMethod());
         mCaptureButton.setEnabled(false);
         Toast.makeText(getApplicationContext(), "Loading index...", Toast.LENGTH_SHORT).show();
-        new AsyncSetup(mVLADPQFramework, mStatusTextView, mCaptureButton, mConfig.doRunTests, getApplicationContext()).execute();
+        new AsyncSetup(mVLADPQFramework, mStatusTextView, mCaptureButton, mConfig.isDoRunTests(), getApplicationContext()).execute();
 
-        if(mConfig.doRunTests){
+        if(mConfig.isDoRunTests()){
             mTestButton.setVisibility(View.VISIBLE);
             mTestButton.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    Tester tester = new Tester("captureDatasetTest", getApplicationContext(), mVLADPQFramework, mStatusTextView);
+                    Tester tester = new Tester(getApplicationContext(), mVLADPQFramework, mStatusTextView);
                     tester.test();
                 }
             });
@@ -176,15 +177,15 @@ public class MainActivity extends AppCompatActivity {
                         public void run() {
                             int[] yawMoves   = new int[]{90, 0, 0, -90};
                             int[] pitchMoves = new int[]{0, 0, 0, 0}; //It's a lie! --> Camera in use is not influenced by pitch
-                            mConfig.nMaxAnswers = yawMoves.length;
+                            mConfig.setnQueriesForResult(yawMoves.length); // capturing convinience! --> not part of tests therefore hash code generation not a problem
                             int pitch_deg;
                             int yaw_deg;
-                            if(mConfig.nMaxAnswers != yawMoves.length || yawMoves.length != pitchMoves.length){
-                                Log.e(TAG, "Check 'mConfig.nMaxAnswers != yawMoves.length || yawMoves.length != pitchMoves.length' failed");
+                            if(mConfig.getnQueriesForResult() != yawMoves.length || yawMoves.length != pitchMoves.length){
+                                Log.e(TAG, "Check 'mConfig.nQueriesForResult != yawMoves.length || yawMoves.length != pitchMoves.length' failed");
                                 return;
                             }
 
-                            for (int i = 0; i < mConfig.nMaxAnswers; i++) {
+                            for (int i = 0; i < mConfig.getnQueriesForResult(); i++) {
 
                                 yaw_deg = yawMoves[i];
                                 pitch_deg = pitchMoves[i];

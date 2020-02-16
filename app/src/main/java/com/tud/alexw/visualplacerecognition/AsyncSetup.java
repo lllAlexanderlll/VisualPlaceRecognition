@@ -32,13 +32,13 @@ class AsyncSetup extends AsyncTask<Void, Void, String> {
 
             long start = System.currentTimeMillis();
             mVladpqFramework.setup();
-            if(mVladpqFramework.mConfig.doPQ){
+            if(mVladpqFramework.mConfig.isDoPQ()){
                 mVladpqFramework.loadPQIndex();
             }
             else{
                 mVladpqFramework.loadLinearIndex();
             }
-            return (mVladpqFramework.mConfig.doPQ ? "PQ" : "Linear") + " index loaded in " + Utils.blue((System.currentTimeMillis() - start) + " ms");
+            return (mVladpqFramework.mConfig.isDoPQ() ? "PQ" : "Linear") + " index loaded in " + Utils.blue((System.currentTimeMillis() - start) + " ms");
 
 
         }catch (Exception e){
