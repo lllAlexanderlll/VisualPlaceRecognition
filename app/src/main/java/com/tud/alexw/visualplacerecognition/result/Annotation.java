@@ -2,6 +2,8 @@ package com.tud.alexw.visualplacerecognition.result;
 
 import android.util.Log;
 
+import androidx.annotation.NonNull;
+
 public class Annotation{
     public int x, y, yaw, pitch;
     public String label;
@@ -23,7 +25,7 @@ public class Annotation{
             }
             String[] annotations = split[0].split("_");
             if(annotations.length != 7){
-                Log.e(TAG, "Couldn't decode file. Invalid filename (seven '_'-separated annotations required: IMG_date_time_label_x_y_yaw_pitch): " + filename);
+                Log.e(TAG, "Couldn't decode file. Invalid filename (seven '_'-separated annotations required: date_time_label_x_y_yaw_pitch): " + filename);
                 return null;
             }
 //        String date = annotations[0];
@@ -34,6 +36,19 @@ public class Annotation{
             int yaw = Integer.parseInt(annotations[5]);
             int pitch = Integer.parseInt(annotations[6]);
             return new Annotation(x, y, yaw, pitch, label);
+    }
+
+    @NonNull
+    @Override
+    public String toString() {
+        StringBuilder stringBuilder = new StringBuilder();
+        return stringBuilder
+                .append(label).append("\n")
+                .append(x).append("\n")
+                .append(y).append("\n")
+                .append(yaw).append("\n")
+                .append(pitch).append("\n")
+                .toString();
     }
 }
 

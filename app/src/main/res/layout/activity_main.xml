@@ -27,10 +27,11 @@
 
     <Button
         android:id="@+id/capture"
+        android:text="Capture"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:enabled="false"
-        android:text="Capture"
+        android:visibility="gone"
         app:layout_constraintStart_toStartOf="parent"
         tools:layout_editor_absoluteY="0dp" />
 
@@ -75,11 +76,12 @@
 
     <Button
         android:id="@+id/test"
+        android:text="Test"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Test"
+        android:enabled="false"
         android:visibility="gone"
-        app:layout_constraintBottom_toBottomOf="@+id/status"
-        app:layout_constraintEnd_toStartOf="@+id/result" />
+        app:layout_constraintStart_toStartOf="parent"
+        tools:layout_editor_absoluteY="0dp" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

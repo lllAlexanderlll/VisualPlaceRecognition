@@ -3,6 +3,7 @@ package com.tud.alexw.visualplacerecognition;
 import android.content.Context;
 import android.os.AsyncTask;
 import android.util.Log;
+import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
 
@@ -18,7 +19,7 @@ class AsyncSetup extends AsyncTask<Void, Void, String> {
     private VLADPQFramework mVladpqFramework;
     private boolean mIsTest;
 
-    public AsyncSetup (VLADPQFramework vladpqFramework, TextView textView, Button button, boolean isTest, Context context){
+    public AsyncSetup(VLADPQFramework vladpqFramework, TextView textView, Button button, boolean isTest, Context context) {
         mVladpqFramework = vladpqFramework;
         mContext = context;
         mTextView = textView;
@@ -28,35 +29,35 @@ class AsyncSetup extends AsyncTask<Void, Void, String> {
 
     @Override
     protected String doInBackground(Void... voids) {
-        try{
+        try {
 
             long start = System.currentTimeMillis();
             mVladpqFramework.setup();
-            if(mVladpqFramework.mConfig.isDoPQ()){
+            if (mVladpqFramework.mConfig.isDoPQ()) {
                 mVladpqFramework.loadPQIndex();
-            }
-            else{
+            } else {
                 mVladpqFramework.loadLinearIndex();
             }
             return (mVladpqFramework.mConfig.isDoPQ() ? "PQ" : "Linear") + " index loaded in " + Utils.blue((System.currentTimeMillis() - start) + " ms");
 
 
-        }catch (Exception e){
+        } catch (Exception e) {
             String msg = Log.getStackTraceString(e);
             Log.e(TAG, e.getMessage() + "\n" + msg);
-            return msg;
+            return "Error! " + msg;
         }
     }
 
     protected void onPostExecute(String result) {
 
-         mButton.setEnabled(!(result.isEmpty() || mIsTest));
-         if(result.startsWith("Pipeline setup successful")){
-             Utils.addText(mTextView, result);
-         }
-         else{
-             Utils.addTextRed(mTextView, result);
-         }
+        mButton.setVisibility(View.VISIBLE);
+        mButton.setEnabled(true);
+        if (!result.startsWith("Error")) {
+            mTextView.setText("");
+            Utils.addText(mTextView, result);
+        } else {
+            Utils.addTextRed(mTextView, result);
+        }
 
     }
 }

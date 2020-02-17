@@ -54,6 +54,7 @@ public class Answer {
         this.distances = distances;
         this.nameLookupTime = nameLookupTime;
         this.indexSearchTime = indexSearchTime;
+        this.annotations = new Annotation[distances.length];
     }
 
     public long getIndexSearchTime() {

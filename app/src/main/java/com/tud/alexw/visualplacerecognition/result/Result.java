@@ -70,10 +70,13 @@ public class Result {
     }
 
     public void majorityCount(){
-        final String[] labels = new String[answers.length];
+        int resultLength = answers.length * answers[0].getAnnotations().length;
+        final String[] labels = new String[resultLength];
+        int count = 0;
         for(int i=0; i < answers.length; i++){
-            for(Annotation annotation : answers[i].getAnnotations()) {
-                labels[i] = annotation.label;
+            for(int k = 0; k < answers[i].getAnnotations().length; k++) {
+                labels[count] = answers[i].getAnnotations()[k].label;
+                count++;
             }
         }
         List labelsList = Arrays.asList(labels);

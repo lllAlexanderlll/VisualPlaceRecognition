@@ -29,7 +29,7 @@ public class VLADPQFramework {
     AbstractSearchStructure index;
     boolean mIsSetup;
     public Config mConfig;
-    long cacheSize_mb = 10;
+    long cacheSize_mb = 20;
     long mInferenceTime = 0;
     int mInferenceCounter = 0;
     private Result mResult;
@@ -138,6 +138,7 @@ public class VLADPQFramework {
             for (MajorityCount majorityCount : mResult.getMajorityCounts()) {
                 mResultStringBuilder.append(majorityCount.label).append(": ").append(majorityCount.count).append("\n");
             }
+            mResultStringBuilder.append("Result: " + mResult.getResultLabel()).append(" ").append(mResult.getConfidence()).append("\n");
             mResultCounter++;
         }
     }
@@ -166,6 +167,7 @@ public class VLADPQFramework {
         return temp;
     }
 
+//    TODO: write header in csv!
     // queryNumb, resultCount, rank, inferenceTime, searchTime, label, x, y, yaw, pitch
     private void addToAnnotationsCSV(Answer answer){
         int rank = 0;

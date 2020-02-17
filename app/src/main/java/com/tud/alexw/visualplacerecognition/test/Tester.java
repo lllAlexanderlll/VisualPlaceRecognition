@@ -19,20 +19,24 @@ public class Tester {
 
     private String TAG = "Tester";
     // test:
-    // with 'k = index size' for small indexes
-    // with 'k = '
+    // with 'k = 100' (kNN) --> search for good k with calculation of P@k
+    // several tests for nQueriesForResult [1, 2, 3, 4, 5, 6, 7, 8]
+
+    //at the end
     // one test for scalability with artificial images (rotated [1,2,3,4,5]*(+-1) --> x10 #images)
 
     // dump config + use its hash as shared id for files
-    // resultCount, resultLabel, confidence, trueLabel, trueX, trueY, trueYaw, truePitch
-    // resultCount, rank, inferenceTime, searchTime, label, x, y, yaw, pitch
+    // resultCount, resultLabel, confidence, meanX, meanY, meanYaw, meanPitch
+    // queryNumb, trueLabel, trueX, trueY, trueYaw, truePitch
+    // queryNumb, resultCount, rank, inferenceTime, searchTime, label, x, y, yaw, pitch
+
 
     // TODO: calc with Python:
     // need to know:
     // precision: OutOfRetrievedSet(TP/(TP + FP))
     // for recall: FN (misses) --> number of place representations in dataset is needed in python script
     // precision, recall, recall@k(-NN), precision@k(-NN)
-    // averageRecall, averagePrecision, averageRecall@k(-NN), averagePrecision@k(-NN)
+    // averageRecall, averagePrecision, averageRecall@k(-NN), averagePrecision@k(-NN) --> to search for appropriate k
     // Single System wide number: mAP
 
     private TextView mTextView;
@@ -53,8 +57,7 @@ public class Tester {
 
     public void test() throws Exception {
         // dump config
-        String configDumpeFilename = mConfig.getBaseFilename() + ".config";
-        saveAsFile(configDumpeFilename, mConfig.toString());
+        saveAsFile(mConfig.getBaseFilename() + ".config", mConfig.toString());
 
         Bitmap bitmap;
         Annotation annotation;
@@ -79,9 +82,9 @@ public class Tester {
                     Log.e(TAG, "Couldn't decode query filename!");
                     return;
                 }
-
-                // resultCount, resultLabel, confidence, meanX, meanY, meanYaw, meanPitch,
-                if(mVLADPQFramework.getResultCounter() % mConfig.getnQueriesForResult() == 0){
+                //TODO: set header
+                // resultCount, resultLabel, confidence, meanX, meanY, meanYaw, meanPitch
+                if(mVLADPQFramework.getResultCounter() > 0 && mVLADPQFramework.getResultCounter() % mConfig.getnQueriesForResult() == 0){
 
                     int[] meanResultPose = mVLADPQFramework.getMeanPose();
                     stringBuilderResultCSV
@@ -97,15 +100,19 @@ public class Tester {
 
             }
         }
-        saveAsFile(mConfig.getBaseFilename() + "_result_annotations.txt", mVLADPQFramework.getAnnotationsCSVContent());
-        saveAsFile(mConfig.getBaseFilename() + "_query_annotations.txt", stringBuilderQueryCSV.toString());
-        saveAsFile(mConfig.getBaseFilename() + "_results.txt", stringBuilderResultCSV.toString());
+
+        // queryNumb, resultCount, rank, inferenceTime, searchTime, label, x, y, yaw, pitch
+        saveAsFile(mConfig.getBaseFilename() + "_result_annotations.csv", mVLADPQFramework.getAnnotationsCSVContent());
+        saveAsFile(mConfig.getBaseFilename() + "_query_annotations.csv", stringBuilderQueryCSV.toString());
+        saveAsFile(mConfig.getBaseFilename() + "_results.csv", stringBuilderResultCSV.toString());
+        Utils.addText(mTextView, "Tests done");
     }
 
     private boolean saveAsFile(String filename, String content){
         File file = new File(mContext.getExternalFilesDir(null), filename);
         try (FileOutputStream stream = new FileOutputStream(file)) {
             stream.write(content.getBytes());
+            Utils.addText(mTextView, "Written to " + file.getAbsolutePath());
             return true;
         }
         catch (IOException e){

@@ -58,9 +58,9 @@ public class MainActivity extends AppCompatActivity {
         try{
             mConfig = new Config(
                     getApplicationContext(),
-                    false,
-                    "captureHomeTest",
-                    "",
+                    true,
+                    "testDataset",
+                    "testDataset",
                     false,
                     960, //960x540 or 640x480
                     540,
@@ -138,8 +138,9 @@ public class MainActivity extends AppCompatActivity {
         mStatusTextView.setMovementMethod(new ScrollingMovementMethod());
         mResultTextView.setMovementMethod(new ScrollingMovementMethod());
         mCaptureButton.setEnabled(false);
-        Toast.makeText(getApplicationContext(), "Loading index...", Toast.LENGTH_SHORT).show();
-        new AsyncSetup(mVLADPQFramework, mStatusTextView, mCaptureButton, mConfig.isDoRunTests(), getApplicationContext()).execute();
+        Utils.addText(mStatusTextView, "Loading index...");
+        Button button = mConfig.isDoRunTests() ? mTestButton : mCaptureButton;
+        new AsyncSetup(mVLADPQFramework, mStatusTextView, button, mConfig.isDoRunTests(), getApplicationContext()).execute();
 
         if(mConfig.isDoRunTests()){
             mTestButton.setVisibility(View.VISIBLE);
@@ -148,6 +149,7 @@ public class MainActivity extends AppCompatActivity {
                 public void onClick(View v) {
                     Tester tester = new Tester(getApplicationContext(), mVLADPQFramework, mStatusTextView);
                     try {
+                        Utils.addText(mStatusTextView, "Performing tests...");
                         tester.test();
                     }
                     catch (Exception e) {
