@@ -8,7 +8,7 @@ public abstract class ImageCapturer {
 
     protected Bitmap mBitmap;
 
-    public abstract Bitmap captureImage() throws IOException;
+    public abstract Bitmap getImage() throws IOException;
 
     public final boolean gotBitmap(){
         return mBitmap != null;

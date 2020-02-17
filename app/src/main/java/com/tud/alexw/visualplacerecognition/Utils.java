@@ -53,7 +53,7 @@ public class Utils {
 
     public static void addTextNumbersBlue(TextView textView, String msg){
         msg = msg.replace("\n", "<br/>");
-        msg.replaceAll("(\\d)", blue("$1"));
+        msg = msg.replaceAll("(\\d)", blue("$1"));
         textView.append(Html.fromHtml("<br/>" + msg));
     }
 

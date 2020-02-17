@@ -20,8 +20,8 @@ public class ImageCapturerLoomo extends ImageCapturer{
         this.mBitmap = null;
     }
 
-    public synchronized Bitmap captureImage() {
-//        Log.d(TAG, "captureImage() called");
+    public synchronized Bitmap getImage() {
+//        Log.d(TAG, "getImage() called");
 
         //startFrameListening image stream listener
         StreamInfo[] streamInfos = mVision.getActivatedStreamInfo();

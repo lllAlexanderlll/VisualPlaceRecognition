@@ -1,20 +1,13 @@
 package com.tud.alexw.visualplacerecognition;
 
 import androidx.annotation.NonNull;
-import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.content.FileProvider;
 
-import android.Manifest;
 import android.content.Intent;
-import android.content.pm.PackageManager;
 import android.content.res.Configuration;
 import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
-import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
-import android.provider.MediaStore;
 import android.text.method.ScrollingMovementMethod;
 import android.util.Log;
 import android.view.View;
@@ -30,12 +23,6 @@ import com.tud.alexw.visualplacerecognition.capturing.ImageCapturer;
 import com.tud.alexw.visualplacerecognition.capturing.ImageCapturerAndroid;
 import com.tud.alexw.visualplacerecognition.capturing.ImageCapturerLoomo;
 import com.tud.alexw.visualplacerecognition.test.Tester;
-
-import java.io.File;
-import java.io.IOException;
-import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.Locale;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -83,7 +70,7 @@ public class MainActivity extends AppCompatActivity {
                         "codebooks/codebook_split_2.csv",
                         "codebooks/codebook_split_3.csv",
                     },
-                    new Integer[]{128,128,128,128},
+                    new int[]{128,128,128,128},
                     true,
                     "pca96/pca_32768_to_96.txt",
                     96,
@@ -122,10 +109,10 @@ public class MainActivity extends AppCompatActivity {
             mImageCapturer = new ImageCapturerLoomo(mVision);
             findViewById(R.id.loomoFlag).setVisibility(View.VISIBLE);
         } else {
+            mImageCapturer = new ImageCapturerAndroid(this, mImageView);
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                cameraPermission();
+                ((ImageCapturerAndroid)mImageCapturer).cameraPermission();
             }
-            mImageCapturer = new ImageCapturerAndroid(this);
             mVision = null;
             mHead = null;
         }
@@ -160,7 +147,17 @@ public class MainActivity extends AppCompatActivity {
                 @Override
                 public void onClick(View v) {
                     Tester tester = new Tester(getApplicationContext(), mVLADPQFramework, mStatusTextView);
-                    tester.test();
+                    try {
+                        tester.test();
+                    }
+                    catch (Exception e) {
+                        Utils.addTextRed(mStatusTextView, "Error during test!");
+                        String msg = Log.getStackTraceString(e);
+                        Utils.addTextRed(mStatusTextView, e.getMessage());
+                        Log.e(TAG, e.getMessage() + "\n" + msg);
+                        return;
+                    }
+
                 }
             });
         }
@@ -192,7 +189,7 @@ public class MainActivity extends AppCompatActivity {
                                 Log.i(TAG, String.format("Image %d %d %d",i, yaw_deg, pitch_deg));
                                 Utils.moveHead(mHead, yaw_deg, pitch_deg);
                                 try {
-                                    mBitmap = mImageCapturer.captureImage();
+                                    mBitmap = mImageCapturer.getImage();
                                 } catch (Exception e) {
                                     Log.e("Capture:", Log.getStackTraceString(e));
                                 }
@@ -225,7 +222,7 @@ public class MainActivity extends AppCompatActivity {
                     }).start();
                 } else {
                    try{
-                       dispatchTakePictureIntent();
+                       ((ImageCapturerAndroid)mImageCapturer).dispatchTakePictureIntent();
                    }
                    catch (Exception e){
                        Log.e("Capture:", Log.getStackTraceString(e));
@@ -293,10 +290,10 @@ public class MainActivity extends AppCompatActivity {
         if (mRunningOnLoomo) {
             super.onActivityResult(requestCode, resultCode, data);
         } else {
-            if (requestCode == REQUEST_IMAGE_CAPTURE && resultCode == RESULT_OK) {
-                setPic();
+            if (requestCode == ((ImageCapturerAndroid)mImageCapturer).REQUEST_IMAGE_CAPTURE && resultCode == RESULT_OK) {
+                ((ImageCapturerAndroid)mImageCapturer).setPic();
                 try{
-                    mVLADPQFramework.inferenceAndNNS(mBitmap);
+                    mVLADPQFramework.inferenceAndNNS(mImageCapturer.getImage());
                 }
                 catch (Exception e){
                     String msg = Log.getStackTraceString(e);
@@ -314,108 +311,9 @@ public class MainActivity extends AppCompatActivity {
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
 
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        ((ImageCapturerAndroid)mImageCapturer).onRequestPermissionsResult(requestCode, permissions, grantResults);
 
-        if (requestCode == MY_CAMERA_REQUEST_CODE) {
-
-            if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-
-                Toast.makeText(this, "camera permission granted", Toast.LENGTH_LONG).show();
-
-            } else {
-
-                Toast.makeText(this, "camera permission denied", Toast.LENGTH_LONG).show();
-
-            }
-
-        }
     }
-
-    private static final int MY_CAMERA_REQUEST_CODE = 100;
-    @RequiresApi(api = Build.VERSION_CODES.M)
-    private void cameraPermission() {
-        if (checkSelfPermission(Manifest.permission.CAMERA)
-                != PackageManager.PERMISSION_GRANTED) {
-            requestPermissions(new String[]{Manifest.permission.CAMERA},
-                    MY_CAMERA_REQUEST_CODE);
-        }
-    }
-
-    final int REQUEST_IMAGE_CAPTURE = 1;
-    String currentPhotoPath;
-
-    private File createImageFile() throws IOException {
-        // Create an image file name
-        String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(new Date());
-        String imageFileName = "temp_" + timeStamp + ".jpg";
-
-
-        File imagePath = new File(getFilesDir(), "images");
-        File image= new File(imagePath, imageFileName);
-        try{
-            /* Making sure the Pictures directory exist.*/
-            if(!imagePath.mkdirs()){
-                Log.e("createImageFile", "couldn't create image file");
-            }
-        }catch (Exception e) {
-            e.printStackTrace();
-        }
-
-
-        // Save a file: path for use with ACTION_VIEW intents
-        currentPhotoPath = image.getAbsolutePath();
-        return image;
-    }
-
-    static final int REQUEST_TAKE_PHOTO = 1;
-    private void dispatchTakePictureIntent() {
-        Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-        // Ensure that there's a camera activity to handle the intent
-        if (takePictureIntent.resolveActivity(getPackageManager()) != null) {
-
-            File photoFile = null;
-            try {
-                photoFile = createImageFile();
-            } catch (IOException ex) {
-                Log.e(TAG, "Couldn't create photo file");
-            }
-
-            if (photoFile != null) {
-                Uri photoURI = FileProvider.getUriForFile(this,
-                        "com.example.android.fileprovider",
-                        photoFile);
-                takePictureIntent.setFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
-                takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, photoURI);
-                startActivityForResult(takePictureIntent, REQUEST_TAKE_PHOTO);
-            }
-        }
-    }
-
-
-
-    private void setPic() {
-        // Get the dimensions of the View
-        int targetW = mImageView.getMaxWidth();
-        int targetH = mImageView.getMaxHeight();
-
-        // Get the dimensions of the bitmap
-        BitmapFactory.Options bmOptions = new BitmapFactory.Options();
-        bmOptions.inJustDecodeBounds = true;
-
-        int photoW = bmOptions.outWidth;
-        int photoH = bmOptions.outHeight;
-
-        // Determine how much to scale down the image
-        int scaleFactor = Math.min(photoW/targetW, photoH/targetH);
-
-        // Decode the image file into a Bitmap sized to fill the View
-        bmOptions.inJustDecodeBounds = false;
-        bmOptions.inSampleSize = scaleFactor;
-        bmOptions.inPurgeable = true;
-
-        mBitmap = BitmapFactory.decodeFile(currentPhotoPath, bmOptions);
-        mImageView.setImageBitmap(mBitmap);
-    }
-
 
     ServiceBinder.BindStateListener mBindStateListenerVision = new ServiceBinder.BindStateListener() {
         @Override
@@ -426,7 +324,7 @@ public class MainActivity extends AppCompatActivity {
             }
             Button button = (Button) findViewById(R.id.capture);
             while (!mImageCapturer.gotBitmap()) {
-                Log.v(TAG, String.format("Waiting for image capture. Image captured: %b", mImageCapturer.gotBitmap()));
+                Log.v(TAG, String.format("Waiting for image capture."));
             }
             button.setEnabled(true);
         }

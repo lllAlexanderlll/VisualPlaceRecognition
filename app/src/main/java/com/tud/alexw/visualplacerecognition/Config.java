@@ -3,7 +3,6 @@ package com.tud.alexw.visualplacerecognition;
 import android.content.Context;
 
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.LinkedList;
@@ -18,9 +17,11 @@ public class Config {
     private int width;
     private int height;
     private List<File> codebookFiles;
-    private List<Integer> codebookSizes;
+    private String[] codebookFilePaths;
+    private int[] codebookSizes;
 
     private boolean doPCA;
+    private String pcaFilePath;
     private File pcaFile;
     private int projectionLength;
     private boolean doWhitening;
@@ -28,6 +29,8 @@ public class Config {
     private File linearIndexDir;
     private File pqIndexDir;
     private File pqCodebookFile;
+
+    private String linearIndexDirPath, pqIndexDirPath, pqCodebookFilePath;
 
     private int nNearestNeighbors;
     private int nQueriesForResult;
@@ -40,10 +43,9 @@ public class Config {
     private boolean doRunTests;
     private String testName;
     private File testDatasetDir;
+    private String testDatasetPath;
 
-    private File configDumpFile;
-
-    StringBuilder stringBuilder;
+    private StringBuilder stringBuilder;
 
 
     public Config(
@@ -53,7 +55,7 @@ public class Config {
             String testDatasetPath,
             boolean doPQ,
             int width, int height, //image
-            String[] codebookFilePaths, Integer[] codebookSizes, //codebook
+            String[] codebookFilePaths, int[] codebookSizes, //codebook
             boolean doPCA, String pcaFilePath, int projectionLength, boolean doWhitening, //pca
             String linearIndexDirPath, //linear index
             String pqIndexDirPath, String pqCodebookFilePath, int nSubVectors, int nProductCentroids,//PQ
@@ -62,34 +64,8 @@ public class Config {
             int nNearestNeighbors,
             int nQueriesForResult) throws IOException {
 
-        stringBuilder = new StringBuilder()
-        //Evaluation
-        .append("doRunTests=").append(doRunTests).append("\n")
-        .append("testName=").append(testName).append("\n")
-        .append("testDatasetDir=").append(testDatasetPath).append("\n")
-        //Vectorisation
-        .append("imageWidth=").append(width).append("\n")
-        .append("imageHeight=").append(height).append("\n")
-        .append("codebookFilePaths=").append(Arrays.toString(codebookFilePaths)).append("\n")
-        .append("codebookSizes=").append(Arrays.toString(codebookSizes)).append("\n")
-        //PCA
-        .append("pcaPath=").append(pcaFilePath).append("\n")
-        .append("doPCA=").append(doPCA).append("\n")
-        .append("projectionLength=").append(projectionLength).append("\n")
-        .append("doWhitening=").append(doWhitening).append("\n")
-        //Index
-        .append("indexSize=").append(indexSize).append("\n")
-        .append("indexIsReadOnly=").append(readOnly).append("\n")
-        .append("isPQIndex=").append(doPQ).append("\n")
-        .append("linearIndexPath=").append(linearIndexDirPath).append("\n")
-        .append("pqIndexPath=").append(pqIndexDirPath).append("\n")
-        .append("pqCodebookPath=").append(pqCodebookFilePath).append("\n")
-        .append("nSubvectors=").append(nSubVectors).append("\n")
-        .append("nCentroidsPerSubvector=").append(nProductCentroids).append("\n")
-        //Search
-        .append("nNN=").append(nNearestNeighbors).append("\n")
-        .append("nQueriesForResult=").append(nQueriesForResult).append("\n");
 
+        this.testDatasetPath = testDatasetPath;
         this.testDatasetDir = testDatasetPath.isEmpty() ? null :  new File(context.getExternalFilesDir(null), testDatasetPath);;
         this.doRunTests = doRunTests;
         this.testName = testName;
@@ -112,7 +88,11 @@ public class Config {
         }
         this.projectionLength = projectionLength;
         this.doWhitening = doWhitening;
-        this.codebookSizes = new LinkedList<>(Arrays.asList(codebookSizes));
+        this.codebookSizes = codebookSizes;
+        this.pcaFilePath = pcaFilePath;
+        this.linearIndexDirPath = linearIndexDirPath;
+        this.pqCodebookFilePath = pqCodebookFilePath;
+        this.pqIndexDirPath = pqIndexDirPath;
         this.pcaFile = pcaFilePath.isEmpty() ? null :  new File(context.getExternalFilesDir(null), pcaFilePath);
         this.linearIndexDir = linearIndexDirPath.isEmpty() ? null : new File(context.getExternalFilesDir(null), linearIndexDirPath);
         this.pqIndexDir = pqIndexDirPath.isEmpty() ? null : new File(context.getExternalFilesDir(null), pqIndexDirPath);
@@ -124,25 +104,48 @@ public class Config {
             throw new IOException("Required files not found! \n" + toString());
         }
 
-        //dump config file
-        if(doRunTests){
-            String configDumpeFilename = testName + "_" + generateHashCode() + ".config";
-            configDumpFile = new File(context.getExternalFilesDir(null), configDumpeFilename);
-            try (FileOutputStream stream = new FileOutputStream(configDumpFile)) {
-                stream.write(toString().getBytes());
-            }
-        }
-
     }
 
     @NonNull
     @Override
     public String toString() {
-        return stringBuilder.toString();
+        stringBuilder = new StringBuilder();
+        return stringBuilder
+                        //Evaluation
+                        .append("doRunTests=").append(doRunTests).append("\n")
+                        .append("testName=").append(testName).append("\n")
+                        .append("testDatasetDir=").append(testDatasetPath).append("\n")
+                        //Vectorisation
+                        .append("imageWidth=").append(width).append("\n")
+                        .append("imageHeight=").append(height).append("\n")
+                        .append("codebookFilePaths=").append(Arrays.toString(codebookFilePaths)).append("\n")
+                        .append("codebookSizes=").append(Arrays.toString(codebookSizes)).append("\n")
+                        //PCA
+                        .append("pcaPath=").append(pcaFilePath).append("\n")
+                        .append("doPCA=").append(doPCA).append("\n")
+                        .append("projectionLength=").append(projectionLength).append("\n")
+                        .append("doWhitening=").append(doWhitening).append("\n")
+                        //Index
+                        .append("indexSize=").append(indexSize).append("\n")
+                        .append("indexIsReadOnly=").append(readOnly).append("\n")
+                        .append("isPQIndex=").append(doPQ).append("\n")
+                        .append("linearIndexPath=").append(linearIndexDirPath).append("\n")
+                        .append("pqIndexPath=").append(pqIndexDirPath).append("\n")
+                        .append("pqCodebookPath=").append(pqCodebookFilePath).append("\n")
+                        .append("nSubvectors=").append(nSubVectors).append("\n")
+                        .append("nCentroidsPerSubvector=").append(nProductCentroids).append("\n")
+                        //Search
+                        .append("nNN=").append(nNearestNeighbors).append("\n")
+                        .append("nQueriesForResult=").append(nQueriesForResult).append("\n")
+                        .toString();
     }
 
     public int generateHashCode(){
         return toString().hashCode();
+    }
+
+    public String getBaseFilename(){
+        return testName + "_" + generateHashCode();
     }
 
     public int getWidth() {
@@ -157,7 +160,7 @@ public class Config {
         return codebookFiles;
     }
 
-    public List<Integer> getCodebookSizes() {
+    public int[] getCodebookSizes() {
         return codebookSizes;
     }
 
@@ -237,7 +240,4 @@ public class Config {
         return testDatasetDir;
     }
 
-    public File getConfigDumpFile() {
-        return configDumpFile;
-    }
 }

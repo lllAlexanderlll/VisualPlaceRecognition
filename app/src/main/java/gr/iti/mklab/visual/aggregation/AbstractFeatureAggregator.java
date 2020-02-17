@@ -274,12 +274,12 @@ public abstract class AbstractFeatureAggregator {
 	 * @return the quantizers as a 3-dimensional double array
 	 * @throws IOException
 	 */
-	public static double[][][] readQuantizers(List<File> files, List<Integer> numCentroids, int centroidLength)
+	public static double[][][] readQuantizers(List<File> files, int[] numCentroids, int centroidLength)
 			throws IOException {
 		int numQuantizers = files.size();
 		double[][][] quantizers = new double[numQuantizers][][];
 		for (int i = 0; i < numQuantizers; i++) {
-			quantizers[i] = AbstractFeatureAggregator.readQuantizer(files.get(i), numCentroids.get(i),
+			quantizers[i] = AbstractFeatureAggregator.readQuantizer(files.get(i), numCentroids[i],
 					centroidLength);
 		}
 		return quantizers;

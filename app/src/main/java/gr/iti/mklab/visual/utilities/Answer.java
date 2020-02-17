@@ -1,5 +1,9 @@
 package gr.iti.mklab.visual.utilities;
 
+import android.util.Log;
+
+import com.tud.alexw.visualplacerecognition.result.Annotation;
+
 /**
  * Objects of this class represent the response of an index structure to a query.
  *
@@ -7,6 +11,7 @@ package gr.iti.mklab.visual.utilities;
  */
 public class Answer {
 
+    private String TAG = "Answer";
     /**
      * Time taken to search the index (ms).
      */
@@ -34,6 +39,8 @@ public class Answer {
         return distances;
     }
 
+    public Annotation[] annotations;
+
     /**
      * Constructor
      *
@@ -57,6 +64,17 @@ public class Answer {
         return nameLookupTime/1000000;
     }
 
+    public void calculateAnnotations(){
+        for(int i = 0; i< ids.length; i++){
+            annotations[i] = Annotation.fromFilename(ids[i]);
+        }
+    }
+
+    public Annotation[] getAnnotations(){
+        return annotations;
+    }
+
+
     @Override
     public String toString() {
         if (ids.length == 0) {
@@ -67,8 +85,8 @@ public class Answer {
             stringBuilder.append(String.format("%d. %s %f", i, ids[i], distances[i])).append("\n");
         }
         stringBuilder
-                .append("Index search time: ").append(getIndexSearchTime()).append("\n")
-                .append("Name lookup time: ").append(getNameLookupTime()).append("\n");
+                .append("Index search time: ").append(getIndexSearchTime()).append("ms \n")
+                .append("Name lookup time: ").append(getNameLookupTime()).append("ms \n");
         return stringBuilder.toString();
     }
 }
