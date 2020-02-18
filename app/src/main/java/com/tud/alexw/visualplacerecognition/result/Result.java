@@ -47,7 +47,6 @@ public class Result {
         }
         answer.calculateAnnotations();
         for(Annotation annotation :answer.getAnnotations()){
-
             sumX += annotation.x;
             sumY += annotation.y;
             sumPitch += annotation.pitch;
@@ -82,6 +81,7 @@ public class Result {
         List labelsList = Arrays.asList(labels);
         Set<String> labelsSet = new HashSet<String>(labelsList);
 
+        majorityCounts.clear();
         for(String label : labelsSet){
             majorityCounts.add(new MajorityCount(Collections.frequency(labelsList, label), label));
         }

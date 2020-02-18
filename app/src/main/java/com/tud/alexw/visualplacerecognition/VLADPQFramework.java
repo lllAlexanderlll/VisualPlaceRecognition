@@ -7,8 +7,6 @@ import com.tud.alexw.visualplacerecognition.result.Annotation;
 import com.tud.alexw.visualplacerecognition.result.MajorityCount;
 import com.tud.alexw.visualplacerecognition.result.Result;
 
-import java.util.List;
-
 import gr.iti.mklab.visual.aggregation.AbstractFeatureAggregator;
 import gr.iti.mklab.visual.aggregation.VladAggregatorMultipleVocabularies;
 import gr.iti.mklab.visual.datastructures.AbstractSearchStructure;
@@ -31,25 +29,22 @@ public class VLADPQFramework {
     public Config mConfig;
     long cacheSize_mb = 20;
     long mInferenceTime = 0;
+    long mSearchTime = 0;
     int mInferenceCounter = 0;
     private Result mResult;
-    private StringBuilder mResultStringBuilder;
-    private StringBuilder mStatusStringBuilder;
+    private StringBuilder mStringBuilderResult;
+    private StringBuilder mStringBuilderStatus;
 
-    // resultCount, resultLabel, confidence, trueLabel, trueX, trueY, trueYaw, truePitch
-    // resultCount, rank, inferenceTime, searchTime, label, x, y, yaw, pitch
-    private StringBuilder mResultCSVStringBuilder;
-    private StringBuilder mAnnotationCSVStringBuilder;
+    private StringBuilder mStringBuilderAnnotationCSV;
     private int mResultCounter = 0;
 
     VLADPQFramework(Config config) {
         mIsSetup = false;
         mConfig = config;
         mResult = new Result(mConfig.getnQueriesForResult());
-        mResultStringBuilder = new StringBuilder();
-        mStatusStringBuilder = new StringBuilder();
-        mResultCSVStringBuilder = new StringBuilder();
-        mAnnotationCSVStringBuilder = new StringBuilder();
+        mStringBuilderResult = new StringBuilder();
+        mStringBuilderStatus = new StringBuilder();
+        mStringBuilderAnnotationCSV = new StringBuilder("queryNumb,resultCount,rank,label,x,y,yaw,pitch,distance\n");
     }
 
     public void setup() throws Exception {
@@ -93,7 +88,7 @@ public class VLADPQFramework {
 
 
         double[][] features = surfExtractor.extractFeaturesInternal(bitmap, mConfig.getWidth(), mConfig.getHeight());
-        mStatusStringBuilder.append("Inference: ").append(String.format("(%dx%d)->(%dx%d) %d features", bitmap.getWidth(), bitmap.getHeight(), mConfig.getWidth(), mConfig.getHeight(), features.length)).append("\n");
+        mStringBuilderStatus.append("Inference: ").append(String.format("(%dx%d)->(%dx%d) %d features", bitmap.getWidth(), bitmap.getHeight(), mConfig.getWidth(), mConfig.getHeight(), features.length)).append("\n");
         if (mConfig.getProjectionLength()> vladAggregator.getVectorLength() || mConfig.getProjectionLength() <= 0) {
             throw new Exception("Target vector length should be between 1 and " + vladAggregator.getVectorLength());
         }
@@ -105,17 +100,17 @@ public class VLADPQFramework {
             vladVector = pca.sampleToEigenSpace(vladVector);
             Log.i(TAG, "PCA performed.");
 
-            mStatusStringBuilder.append("PCA");
+            mStringBuilderStatus.append("PCA");
             if(mConfig.isDoWhitening()){
-                mStatusStringBuilder.append("w");
+                mStringBuilderStatus.append("w");
             }
-            mStatusStringBuilder.append(vladLength).append("to").append(vladVector.length).append("\n");
+            mStringBuilderStatus.append(vladLength).append("to").append(vladVector.length).append("\n");
         } else {
             Log.i(TAG, "No PCA projection needed!");
         }
 
         mInferenceTime = System.currentTimeMillis() - start;
-        mStatusStringBuilder.append("Inference time: ").append(mInferenceTime).append("ms \n");
+        mStringBuilderStatus.append("Inference time: ").append(mInferenceTime).append("ms \n");
         mInferenceCounter++;
         return vladVector;
     }
@@ -123,7 +118,7 @@ public class VLADPQFramework {
     private Answer search(double[] vladVector) throws Exception {
         checkSetup();
         Answer answer = index.computeNearestNeighbors(mConfig.getnNearestNeighbors(), vladVector);
-        mStatusStringBuilder.append(answer.toString());
+        mStringBuilderStatus.append(answer.toString());
         return answer;
     }
 
@@ -132,19 +127,23 @@ public class VLADPQFramework {
         Answer answer = search(vector);
         mResult.addAnswer(answer);
         addToAnnotationsCSV(answer);
-
+        mSearchTime = answer.getIndexSearchTime() + answer.getNameLookupTime();
         if(mConfig.getnQueriesForResult() == mResult.getQueryCounter()) {
             mResult.majorityCount();
             for (MajorityCount majorityCount : mResult.getMajorityCounts()) {
-                mResultStringBuilder.append(majorityCount.label).append(": ").append(majorityCount.count).append("\n");
+                mStringBuilderResult.append(majorityCount.label).append(": ").append(majorityCount.count).append("\n");
             }
-            mResultStringBuilder.append("Result: " + mResult.getResultLabel()).append(" ").append(mResult.getConfidence()).append("\n");
+            mStringBuilderResult.append("Result: " + mResult.getResultLabel()).append(" ").append(mResult.getConfidence()).append("\n");
             mResultCounter++;
         }
     }
 
     public long getInferenceTime() {
         return mInferenceTime;
+    }
+
+    public long getmSearchTime() {
+        return mSearchTime;
     }
 
     public int getmInferenceCounter() {
@@ -156,39 +155,36 @@ public class VLADPQFramework {
     }
 
     public String popResultString(){
-        String temp = mResultStringBuilder.toString();
-        mResultStringBuilder.setLength(0);
+        String temp = mStringBuilderResult.toString();
+        mStringBuilderResult.setLength(0);
         return temp;
     }
 
     public String popStatusString(){
-        String temp = mStatusStringBuilder.toString();
-        mStatusStringBuilder.setLength(0);
+        String temp = mStringBuilderStatus.toString();
+        mStringBuilderStatus.setLength(0);
         return temp;
     }
 
-//    TODO: write header in csv!
-    // queryNumb, resultCount, rank, inferenceTime, searchTime, label, x, y, yaw, pitch
     private void addToAnnotationsCSV(Answer answer){
         int rank = 0;
         for(Annotation annotation : answer.getAnnotations()){
-            mAnnotationCSVStringBuilder
-                    .append(mInferenceCounter).append(",")
+            mStringBuilderAnnotationCSV
+                    .append(mInferenceCounter-1).append(",")
                     .append(mResultCounter).append(",")
                     .append(rank).append(",")
-                    .append(mInferenceTime).append(",")
-                    .append(answer.getNameLookupTime() + answer.getIndexSearchTime()).append(",")
                     .append(annotation.label).append(",")
                     .append(annotation.x).append(",")
                     .append(annotation.y).append(",")
                     .append(annotation.yaw).append(",")
-                    .append(annotation.pitch).append("\n");
+                    .append(annotation.pitch).append(",")
+                    .append(answer.getDistances()[rank]).append("\n");
             rank++;
         }
     }
 
     public String getAnnotationsCSVContent(){
-        return mAnnotationCSVStringBuilder.toString();
+        return mStringBuilderAnnotationCSV.toString();
     }
 
     public String getResultLabel(){

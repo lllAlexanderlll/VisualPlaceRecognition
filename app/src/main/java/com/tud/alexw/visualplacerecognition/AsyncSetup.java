@@ -50,10 +50,11 @@ class AsyncSetup extends AsyncTask<Void, Void, String> {
 
     protected void onPostExecute(String result) {
 
-        mButton.setVisibility(View.VISIBLE);
-        mButton.setEnabled(true);
+        if(mButton != null){
+            mButton.setVisibility(View.VISIBLE);
+            mButton.setEnabled(true);
+        }
         if (!result.startsWith("Error")) {
-            mTextView.setText("");
             Utils.addText(mTextView, result);
         } else {
             Utils.addTextRed(mTextView, result);

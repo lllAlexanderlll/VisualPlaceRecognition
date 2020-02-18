@@ -42,14 +42,14 @@ public class MainActivity extends AppCompatActivity {
     private TextView mResultTextView;
     private ImageView mImageView;
     private Button mCaptureButton;
-    private Button mTestButton;
+    private TextView mTestTextView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        mTestButton = (Button) findViewById(R.id.test);
+        mTestTextView = (TextView) findViewById(R.id.test);
         mCaptureButton = (Button) findViewById(R.id.capture);
         mStatusTextView = (TextView) findViewById(R.id.status);
         mResultTextView = (TextView) findViewById(R.id.result);
@@ -59,7 +59,7 @@ public class MainActivity extends AppCompatActivity {
             mConfig = new Config(
                     getApplicationContext(),
                     true,
-                    "testDataset",
+                    "testDataset4",
                     "testDataset",
                     false,
                     960, //960x540 or 640x480
@@ -139,29 +139,15 @@ public class MainActivity extends AppCompatActivity {
         mResultTextView.setMovementMethod(new ScrollingMovementMethod());
         mCaptureButton.setEnabled(false);
         Utils.addText(mStatusTextView, "Loading index...");
-        Button button = mConfig.isDoRunTests() ? mTestButton : mCaptureButton;
-        new AsyncSetup(mVLADPQFramework, mStatusTextView, button, mConfig.isDoRunTests(), getApplicationContext()).execute();
 
-        if(mConfig.isDoRunTests()){
-            mTestButton.setVisibility(View.VISIBLE);
-            mTestButton.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    Tester tester = new Tester(getApplicationContext(), mVLADPQFramework, mStatusTextView);
-                    try {
-                        Utils.addText(mStatusTextView, "Performing tests...");
-                        tester.test();
-                    }
-                    catch (Exception e) {
-                        Utils.addTextRed(mStatusTextView, "Error during test!");
-                        String msg = Log.getStackTraceString(e);
-                        Utils.addTextRed(mStatusTextView, e.getMessage());
-                        Log.e(TAG, e.getMessage() + "\n" + msg);
-                        return;
-                    }
+        new AsyncSetup(mVLADPQFramework, mStatusTextView, mConfig.isDoRunTests() ? null : mCaptureButton, mConfig.isDoRunTests(), getApplicationContext()).execute();
 
-                }
-            });
+        if(mConfig.isDoRunTests()) {
+            mTestTextView.setVisibility(View.VISIBLE);
+            new Tester(getApplicationContext(), mVLADPQFramework, mStatusTextView).execute();
+        }
+        else{
+            mCaptureButton.setVisibility(View.VISIBLE);
         }
 
         mCaptureButton.setOnClickListener(new View.OnClickListener() {

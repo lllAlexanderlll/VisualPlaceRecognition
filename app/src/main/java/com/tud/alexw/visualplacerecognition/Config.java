@@ -62,7 +62,7 @@ public class Config {
             int vectorLength, int indexSize, // index general
             boolean readOnly, //TODO  test this
             int nNearestNeighbors,
-            int nQueriesForResult) throws IOException {
+            int nQueriesForResult) throws IOException, IllegalArgumentException {
 
 
         this.testDatasetPath = testDatasetPath;
@@ -99,7 +99,9 @@ public class Config {
         this.pqCodebookFile = pqCodebookFilePath.isEmpty() ? null : new File(context.getExternalFilesDir(null), pqCodebookFilePath);
 
         this.nQueriesForResult = nQueriesForResult;
-
+        if(nQueriesForResult <= 0){
+            throw new IllegalArgumentException("nQueriesForResult must be positive and not zero! \n" + toString());
+        }
         if(!codebookFiles.get(0).exists()){
             throw new IOException("Required files not found! \n" + toString());
         }
