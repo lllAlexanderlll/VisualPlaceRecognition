@@ -65,8 +65,6 @@ public class Tester extends AsyncTask<Void, Void, String>{
     }
 
     private boolean test() throws Exception {
-
-
         Bitmap bitmap;
         Annotation annotation;
         int lastResultCounter =  0;

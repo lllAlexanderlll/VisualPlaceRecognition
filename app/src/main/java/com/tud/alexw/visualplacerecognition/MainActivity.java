@@ -59,7 +59,7 @@ public class MainActivity extends AppCompatActivity {
             mConfig = new Config(
                     getApplicationContext(),
                     true,
-                    "testDataset4",
+                    "testDataset_mAP",
                     "testDataset",
                     false,
                     960, //960x540 or 640x480
@@ -84,7 +84,7 @@ public class MainActivity extends AppCompatActivity {
                     1244,
                     true,
                     10,
-                    2
+                    1
             );
             Log.i(TAG, mConfig.toString());
         }

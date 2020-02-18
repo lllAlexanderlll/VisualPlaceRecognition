@@ -44,7 +44,7 @@ public class Config {
     private String testName;
     private File testDatasetDir;
     private String testDatasetPath;
-
+    private File baseTestDir;
     private StringBuilder stringBuilder;
 
 
@@ -66,7 +66,7 @@ public class Config {
 
 
         this.testDatasetPath = testDatasetPath;
-        this.testDatasetDir = testDatasetPath.isEmpty() ? null :  new File(context.getExternalFilesDir(null), testDatasetPath);;
+        this.testDatasetDir = testDatasetPath.isEmpty() ? null :  new File(context.getExternalFilesDir(null), testDatasetPath);
         this.doRunTests = doRunTests;
         this.testName = testName;
         this.nNearestNeighbors = nNearestNeighbors;
@@ -104,6 +104,13 @@ public class Config {
         }
         if(!codebookFiles.get(0).exists()){
             throw new IOException("Required files not found! \n" + toString());
+        }
+
+        baseTestDir = new File(context.getExternalFilesDir(null), getBaseFilename());
+        if(!baseTestDir.exists()){
+            if(!baseTestDir.mkdirs()){
+                throw new IOException("Couldn't create base dir! \n" + baseTestDir.getAbsolutePath());
+            }
         }
 
     }
@@ -147,7 +154,7 @@ public class Config {
     }
 
     public String getBaseFilename(){
-        return testName + "_" + generateHashCode();
+        return testName + "_" + generateHashCode() + "/" + testName + "_" + generateHashCode();
     }
 
     public int getWidth() {
