@@ -120,33 +120,98 @@ public class Config {
     public String toString() {
         stringBuilder = new StringBuilder();
         return stringBuilder
-                        //Evaluation
-                        .append("doRunTests=").append(doRunTests).append("\n")
-                        .append("testName=").append(testName).append("\n")
-                        .append("testDatasetDir=").append(testDatasetPath).append("\n")
-                        //Vectorisation
-                        .append("imageWidth=").append(width).append("\n")
-                        .append("imageHeight=").append(height).append("\n")
-                        .append("codebookFilePaths=").append(Arrays.toString(codebookFilePaths)).append("\n")
-                        .append("codebookSizes=").append(Arrays.toString(codebookSizes)).append("\n")
-                        //PCA
-                        .append("pcaPath=").append(pcaFilePath).append("\n")
-                        .append("doPCA=").append(doPCA).append("\n")
-                        .append("projectionLength=").append(projectionLength).append("\n")
-                        .append("doWhitening=").append(doWhitening).append("\n")
-                        //Index
-                        .append("indexSize=").append(indexSize).append("\n")
-                        .append("indexIsReadOnly=").append(readOnly).append("\n")
-                        .append("isPQIndex=").append(doPQ).append("\n")
-                        .append("linearIndexPath=").append(linearIndexDirPath).append("\n")
-                        .append("pqIndexPath=").append(pqIndexDirPath).append("\n")
-                        .append("pqCodebookPath=").append(pqCodebookFilePath).append("\n")
-                        .append("nSubvectors=").append(nSubVectors).append("\n")
-                        .append("nCentroidsPerSubvector=").append(nProductCentroids).append("\n")
-                        //Search
-                        .append("nNN=").append(nNearestNeighbors).append("\n")
-                        .append("nQueriesForResult=").append(nQueriesForResult).append("\n")
-                        .toString();
+            .append("[Test]").append("\n")
+            .append("doRunTests=").append(doRunTests).append("\n")
+            .append("testName=").append(testName).append("\n")
+            .append("testDatasetDir=").append(testDatasetPath).append("\n")
+
+            .append("\n[Vectorisation]").append("\n")
+            .append("imageWidth=").append(width).append("\n")
+            .append("imageHeight=").append(height).append("\n")
+            .append("codebookFilePaths=").append(Arrays.toString(codebookFilePaths)).append("\n")
+            .append("codebookSizes=").append(Arrays.toString(codebookSizes)).append("\n")
+            .append("pcaPath=").append(pcaFilePath).append("\n")
+            .append("doPCA=").append(doPCA).append("\n")
+            .append("projectionLength=").append(projectionLength).append("\n")
+            .append("doWhitening=").append(doWhitening).append("\n")
+
+            .append("\n[Index]").append("\n")
+            .append("indexSize=").append(indexSize).append("\n")
+            .append("indexIsReadOnly=").append(readOnly).append("\n")
+            .append("isPQIndex=").append(doPQ).append("\n")
+            .append("linearIndexPath=").append(linearIndexDirPath).append("\n")
+            .append("pqIndexPath=").append(pqIndexDirPath).append("\n")
+            .append("pqCodebookPath=").append(pqCodebookFilePath).append("\n")
+            .append("nSubvectors=").append(nSubVectors).append("\n")
+            .append("nCentroidsPerSubvector=").append(nProductCentroids).append("\n")
+
+            .append("\n[Search]").append("\n")
+            .append("nNN=").append(nNearestNeighbors).append("\n")
+            .append("nQueriesForResult=").append(nQueriesForResult).append("\n")
+            .toString();
+    }
+
+    public static Config getConfigAndroid(Context context) throws IOException {
+        return new Config(
+                context,
+                true,
+                "testDataset_mAP",
+                "testDataset",
+                false,
+                960, //960x540 or 640x480
+                540,
+                new String[]{
+                        "codebooks/codebook_split_0.csv",
+                        "codebooks/codebook_split_1.csv",
+                        "codebooks/codebook_split_2.csv",
+                        "codebooks/codebook_split_3.csv",
+                },
+                new int[]{128,128,128,128},
+                true,
+                "pca96/pca_32768_to_96.txt",
+                96,
+                true,
+                "linearIndex4Codebooks128WithPCAw96/BDB_518400_surf_32768to96w/", //"linearIndex4Codebooks128WithPCA96/BDB_518400_surf_32768to96/", //linearIndex4Codebooks128WithPCAw96/BDB_518400_surf_32768to96w/
+                "pqIndex4Codebooks128WithPCAw96/", //"pqIndex4Codebooks128WithPCA96/", //pqIndex4Codebooks128WithPCAw96/
+                "pqIndex4Codebooks128WithPCAw96/pq_96_8x3_1244.csv", //"pqIndex4Codebooks128WithPCA96/pq_96_8x3_1244.csv", //pqIndex4Codebooks128WithPCAw96/pq_96_8x3_1244.csv
+                8,
+                10,
+                96,
+                1244,
+                true,
+                10,
+                1
+        );
+    }
+
+    public static Config getConfigLoomo(Context context) throws IOException {
+        return new Config(
+                context,
+                false,
+                "testDataset_mAP",
+                "testDataset",
+                false,
+                960, //960x540 or 640x480
+                540,
+                new String[]{
+                        "codebook/features.csv_codebook-64A-64C-100I-1S_power+l2.csv"
+                },
+                new int[]{64},
+                true,
+                "pca/linearIndexBDB_307200_surf_4096pca_245_128_10453ms.txt",
+                128,
+                true,
+                "linearIndex/pca/BDB_307200_surf_4096to128/",
+                "pqIndex/pca/",
+                "pqCodebook/pca/pq_128_8x3_244.csv",
+                8,
+                10,
+                128,
+                244,
+                true,
+                10,
+                1
+        );
     }
 
     public int generateHashCode(){

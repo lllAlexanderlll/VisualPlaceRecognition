@@ -55,37 +55,25 @@ public class MainActivity extends AppCompatActivity {
         mResultTextView = (TextView) findViewById(R.id.result);
         mImageView = (ImageView) findViewById(R.id.imageView);
 
+
+        // get Vision SDK instance
+        mVision = Vision.getInstance();
+        mHead = Head.getInstance();
+
+        // Setup loomo
+//        mRunningOnLoomo &= mVision.bindService(this, mBindStateListenerVision);
+//        mRunningOnLoomo &= mHead.bindService(getApplicationContext(), mServiceBindListenerHead);
+
+        mRunningOnLoomo = false;
         try{
-            mConfig = new Config(
-                    getApplicationContext(),
-                    true,
-                    "testDataset_mAP",
-                    "testDataset",
-                    false,
-                    960, //960x540 or 640x480
-                    540,
-                    new String[]{
-                        "codebooks/codebook_split_0.csv",
-                        "codebooks/codebook_split_1.csv",
-                        "codebooks/codebook_split_2.csv",
-                        "codebooks/codebook_split_3.csv",
-                    },
-                    new int[]{128,128,128,128},
-                    true,
-                    "pca96/pca_32768_to_96.txt",
-                    96,
-                    true,
-                    "linearIndex4Codebooks128WithPCAw96/BDB_518400_surf_32768to96w/", //"linearIndex4Codebooks128WithPCA96/BDB_518400_surf_32768to96/", //linearIndex4Codebooks128WithPCAw96/BDB_518400_surf_32768to96w/
-                    "pqIndex4Codebooks128WithPCAw96/", //"pqIndex4Codebooks128WithPCA96/", //pqIndex4Codebooks128WithPCAw96/
-                    "pqIndex4Codebooks128WithPCAw96/pq_96_8x3_1244.csv", //"pqIndex4Codebooks128WithPCA96/pq_96_8x3_1244.csv", //pqIndex4Codebooks128WithPCAw96/pq_96_8x3_1244.csv
-                    8,
-                    10,
-                    96,
-                    1244,
-                    true,
-                    10,
-                    1
-            );
+            mConfig = Config.getConfigLoomo(getApplicationContext());
+//            if(mRunningOnLoomo){
+//                mConfig = Config.getConfigLoomo(getApplicationContext());
+//            }
+//            else{
+//                mConfig = Config.getConfigAndroid(getApplicationContext());
+//            }
+
             Log.i(TAG, mConfig.toString());
         }
         catch (Exception e) {
@@ -98,13 +86,7 @@ public class MainActivity extends AppCompatActivity {
 
 
 
-        // get Vision SDK instance
-        mVision = Vision.getInstance();
-        mHead = Head.getInstance();
 
-        // Setup loomo
-        mRunningOnLoomo &= mVision.bindService(this, mBindStateListenerVision);
-        mRunningOnLoomo &= mHead.bindService(getApplicationContext(), mServiceBindListenerHead);
         if (mRunningOnLoomo) {
             mImageCapturer = new ImageCapturerLoomo(mVision);
             findViewById(R.id.loomoFlag).setVisibility(View.VISIBLE);
