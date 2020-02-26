@@ -103,7 +103,7 @@ public class Config {
             throw new IllegalArgumentException("nQueriesForResult must be positive and not zero! \n" + toString());
         }
         if(!codebookFiles.get(0).exists()){
-            throw new IOException("Required files not found! \n" + toString());
+            throw new IOException("Codebook required, but does not exist! \n" + codebookFiles.get(0));
         }
 
         baseTestDir = new File(context.getExternalFilesDir(null), getBaseFilename());
@@ -187,27 +187,28 @@ public class Config {
     public static Config getConfigLoomo(Context context) throws IOException {
         return new Config(
                 context,
+                true,
+                "captureUni_test_mAP",
+                "captureUni/testsets/test/",
                 false,
-                "testDataset_mAP",
-                "testDataset",
-                false,
-                960, //960x540 or 640x480
-                540,
+                816, //960x540 or 640x480
+                612,
                 new String[]{
-                        "codebook/features.csv_codebook-64A-64C-100I-1S_power+l2.csv"
+                        "captureUni/codebook/codebook_features_dim_64_centroids_128.csv"
                 },
-                new int[]{64},
+                new int[]{128},
                 true,
-                "pca/linearIndexBDB_307200_surf_4096pca_245_128_10453ms.txt",
-                128,
+                //"captureUni/pca1024/pca_8192_to_1024.txt",
+                "captureUni/pca256/pca_8192_to_256.txt",
+                256,
                 true,
-                "linearIndex/pca/BDB_307200_surf_4096to128/",
-                "pqIndex/pca/",
-                "pqCodebook/pca/pq_128_8x3_244.csv",
+                "captureUni/linearIndexWithoutPCA/BDB_499392_surf_8192to1024w/",
+                "",
+                "",
                 8,
                 10,
-                128,
-                244,
+                1024,
+                3831,
                 true,
                 10,
                 1
