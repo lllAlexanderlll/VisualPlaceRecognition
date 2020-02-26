@@ -78,7 +78,7 @@ public class Tester extends AsyncTask<Void, Void, String>{
                 File file = files.get(i);
 
                 if (!file.isDirectory() && file.getAbsolutePath().endsWith(".jpg")) {
-                    Log.i(TAG, String.format("Test image %d of %d %s", count, files.size() - nFilesWithoutResult, directory.getName()));
+                    Log.i(TAG, String.format("Test image %d of %d %s (%d total)", i, files.size() - nFilesWithoutResult, directory.getName(), count));
                     bitmap = BitmapFactory.decodeFile(file.getAbsolutePath());
                     mVLADPQFramework.inferenceAndNNS(bitmap);
                     Log.i(TAG, "Decoding query file:");

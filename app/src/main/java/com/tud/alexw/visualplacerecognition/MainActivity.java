@@ -61,10 +61,9 @@ public class MainActivity extends AppCompatActivity {
         mHead = Head.getInstance();
 
         // Setup loomo
-//        mRunningOnLoomo &= mVision.bindService(this, mBindStateListenerVision);
-//        mRunningOnLoomo &= mHead.bindService(getApplicationContext(), mServiceBindListenerHead);
+        mRunningOnLoomo &= mVision.bindService(this, mBindStateListenerVision);
+        mRunningOnLoomo &= mHead.bindService(getApplicationContext(), mServiceBindListenerHead);
 
-        mRunningOnLoomo = false;
         try{
             mConfig = Config.getConfigLoomo(getApplicationContext());
 //            if(mRunningOnLoomo){

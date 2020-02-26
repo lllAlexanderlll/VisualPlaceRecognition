@@ -152,6 +152,7 @@ public class Config {
     }
 
     public static Config getConfigAndroid(Context context) throws IOException {
+        int projectedVectorLength = 96;
         return new Config(
                 context,
                 true,
@@ -169,14 +170,14 @@ public class Config {
                 new int[]{128,128,128,128},
                 true,
                 "pca96/pca_32768_to_96.txt",
-                96,
+                projectedVectorLength,
                 true,
                 "linearIndex4Codebooks128WithPCAw96/BDB_518400_surf_32768to96w/", //"linearIndex4Codebooks128WithPCA96/BDB_518400_surf_32768to96/", //linearIndex4Codebooks128WithPCAw96/BDB_518400_surf_32768to96w/
                 "pqIndex4Codebooks128WithPCAw96/", //"pqIndex4Codebooks128WithPCA96/", //pqIndex4Codebooks128WithPCAw96/
                 "pqIndex4Codebooks128WithPCAw96/pq_96_8x3_1244.csv", //"pqIndex4Codebooks128WithPCA96/pq_96_8x3_1244.csv", //pqIndex4Codebooks128WithPCAw96/pq_96_8x3_1244.csv
                 8,
                 10,
-                96,
+                projectedVectorLength,
                 1244,
                 true,
                 10,
@@ -185,6 +186,7 @@ public class Config {
     }
 
     public static Config getConfigLoomo(Context context) throws IOException {
+        int projectedVectorLength = 256;
         return new Config(
                 context,
                 true,
@@ -200,14 +202,14 @@ public class Config {
                 true,
                 //"captureUni/pca1024/pca_8192_to_1024.txt",
                 "captureUni/pca256/pca_8192_to_256.txt",
-                256,
+                projectedVectorLength,
                 true,
                 "captureUni/linearIndexWithoutPCA/BDB_499392_surf_8192to1024w/",
                 "",
                 "",
                 8,
                 10,
-                1024,
+                projectedVectorLength,
                 3831,
                 true,
                 10,
