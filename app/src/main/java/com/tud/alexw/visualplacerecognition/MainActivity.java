@@ -121,7 +121,7 @@ public class MainActivity extends AppCompatActivity {
         mCaptureButton.setEnabled(false);
         Utils.addText(mStatusTextView, "Loading index...");
 
-        new AsyncSetup(mVLADPQFramework, mStatusTextView, mConfig.isDoRunTests() ? null : mCaptureButton, mConfig.isDoRunTests(), getApplicationContext()).execute();
+        new AsyncFrameworkSetup(mVLADPQFramework, mStatusTextView, mConfig.isDoRunTests() ? null : mCaptureButton, mConfig.isDoRunTests(), getApplicationContext()).execute();
 
         if(mConfig.isDoRunTests()) {
             mTestTextView.setVisibility(View.VISIBLE);

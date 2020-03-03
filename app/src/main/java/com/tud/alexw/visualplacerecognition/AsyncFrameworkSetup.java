@@ -10,7 +10,7 @@ import android.widget.TextView;
 //Params, the type of the parameters sent to the task upon execution.
 //Progress, the type of the progress units published during the background computation.
 //Result, the type of the result of the background computation.
-class AsyncSetup extends AsyncTask<Void, Void, String> {
+class AsyncFrameworkSetup extends AsyncTask<Void, Void, String> {
 
     public static String TAG = "AsyncSetup";
     private Context mContext;
@@ -19,7 +19,7 @@ class AsyncSetup extends AsyncTask<Void, Void, String> {
     private VLADPQFramework mVladpqFramework;
     private boolean mIsTest;
 
-    public AsyncSetup(VLADPQFramework vladpqFramework, TextView textView, Button button, boolean isTest, Context context) {
+    public AsyncFrameworkSetup(VLADPQFramework vladpqFramework, TextView textView, Button button, boolean isTest, Context context) {
         mVladpqFramework = vladpqFramework;
         mContext = context;
         mTextView = textView;
