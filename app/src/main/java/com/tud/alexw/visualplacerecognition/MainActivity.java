@@ -18,10 +18,12 @@ import android.widget.TextView;
 import com.segway.robot.sdk.base.bind.ServiceBinder;
 import com.segway.robot.sdk.locomotion.head.Head;
 import com.segway.robot.sdk.vision.Vision;
+import com.tud.alexw.visualplacerecognition.capturing.APictureCapturingService;
 import com.tud.alexw.visualplacerecognition.capturing.ImageCapturer;
 import com.tud.alexw.visualplacerecognition.capturing.ImageCapturerAndroid;
 import com.tud.alexw.visualplacerecognition.capturing.ImageCapturerLoomo;
 import com.tud.alexw.visualplacerecognition.evaluation.Tester;
+import com.tud.alexw.visualplacerecognition.head.MoveHead;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -36,6 +38,10 @@ public class MainActivity extends AppCompatActivity {
     private Bitmap mBitmap;
 
     private Config mConfig;
+    //The capture service
+    private APictureCapturingService pictureService;
+
+    private MoveHead moveHead;
 
     private TextView mStatusTextView;
     private TextView mResultTextView;

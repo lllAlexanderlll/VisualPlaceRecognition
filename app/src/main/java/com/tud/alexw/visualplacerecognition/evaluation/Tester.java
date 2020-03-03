@@ -79,7 +79,7 @@ public class Tester extends AsyncTask<Void, Void, String>{
                     bitmap = BitmapFactory.decodeFile(file.getAbsolutePath());
                     mVLADPQFramework.inferenceAndNNS(bitmap);
                     Log.i(TAG, "Decoding query file:");
-                    annotation = Annotation.fromFilename(file.getName());
+                    annotation = Annotation.decodeFilename(file.getName());
                     if (annotation != null) {
                         stringBuilderQueryCSV
                                 .append(count).append(",")

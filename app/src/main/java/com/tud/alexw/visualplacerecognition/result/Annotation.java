@@ -2,7 +2,10 @@ package com.tud.alexw.visualplacerecognition.result;
 
 import android.util.Log;
 
+import java.sql.Timestamp;
+import java.text.SimpleDateFormat;
 import java.util.Arrays;
+import java.util.regex.Pattern;
 
 import androidx.annotation.NonNull;
 
@@ -10,6 +13,7 @@ public class Annotation{
     public int x, y, yaw, pitch;
     public String label;
     private static String TAG = "Annotation";
+    private long timeTaken;
 
     public Annotation(int x, int y, int yaw, int pitch, String label) {
         this.x = x;
@@ -17,9 +21,10 @@ public class Annotation{
         this.yaw = yaw;
         this.pitch = pitch;
         this.label = label;
+        this.timeTaken = -1;
     }
 
-    public static Annotation fromFilename(String filename){
+    public static Annotation decodeFilename(String filename){
             String[] split = filename.split("\\.");
             if(split.length != 2){
                 Log.e(TAG, "Couldn't decode file. Invalid filename (exactly one dot allowed): " + filename);
@@ -46,6 +51,34 @@ public class Annotation{
             return new Annotation(x, y, yaw, pitch, label);
     }
 
+    private void transformToGlobalCoordinates(){
+        // convert local pitch and yaw to global measurements
+
+        if(pitch > 90){
+            if(pitch == 174){
+                pitch = 0;
+            }
+            else{
+                pitch -= 90;
+            }
+            yaw += 180;
+        }
+        yaw %= 360;
+    }
+
+    public String encodeFilename(){
+        transformToGlobalCoordinates();
+        if(timeTaken == -1 || yaw == -1 || label == null){
+            String errorMsg = "Cannot save AnnotatedImage. Not fully initialised: " + this;
+            Log.e(TAG, errorMsg);
+            throw new IllegalStateException(errorMsg);
+        }
+        else {
+            String timeFormatted = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Timestamp(timeTaken));
+            return String.format("%s_%s_%d_%d_%d_%d.jpg", timeFormatted, label, x, y, yaw, pitch);
+        }
+    }
+
     @NonNull
     @Override
     public String toString() {
@@ -57,6 +90,34 @@ public class Annotation{
                 .append(yaw).append("\n")
                 .append(pitch).append("\n")
                 .toString();
+    }
+
+    public int getX() {
+        return x;
+    }
+
+    public int getY() {
+        return y;
+    }
+
+    public int getYaw() {
+        return yaw;
+    }
+
+    public int getPitch() {
+        return pitch;
+    }
+
+    public String getLabel() {
+        return label;
+    }
+
+    public long getTimeTaken() {
+        return timeTaken;
+    }
+
+    public void setTimeTaken(long timeTaken) {
+        this.timeTaken = timeTaken;
     }
 }
 

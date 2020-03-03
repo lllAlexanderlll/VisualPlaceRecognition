@@ -27,7 +27,7 @@ import android.util.Range;
 import android.util.Size;
 import android.view.Surface;
 
-import com.tud.alexw.capturedataset.AnnotatedImage;
+import com.tud.alexw.visualplacerecognition.result.Annotation;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -77,7 +77,7 @@ public class PictureCapturingServiceImpl extends APictureCapturingService {
     private String currentCameraId;
     private boolean cameraClosed;
 
-    private AnnotatedImage annotatedImage;
+    private Annotation imageAnnotation;
     /**
      * stores a sorted map of (pictureUrlOnDisk, PictureData).
      */
@@ -108,8 +108,8 @@ public class PictureCapturingServiceImpl extends APictureCapturingService {
      * @param listener picture capturing listener
      */
     @Override
-    public void startCapturing(final PictureCapturingListener listener, AnnotatedImage annotatedImage) {
-        this.annotatedImage = annotatedImage;
+    public void startCapturing(final PictureCapturingListener listener, Annotation imageAnnotation) {
+        this.imageAnnotation = imageAnnotation;
         this.image = null;
         this.capturingListener = listener;
         this.cameraIds = new LinkedList<>();
@@ -277,7 +277,7 @@ public class PictureCapturingServiceImpl extends APictureCapturingService {
     //        captureBuilder.set(CaptureRequest.SENSOR_SENSITIVITY, 1200);
             captureBuilder.set(CaptureRequest.SENSOR_EXPOSURE_TIME, 100000000L);
 
-            if(annotatedImage.getPitch() <= 90){
+            if(imageAnnotation.getPitch() <= 90){
                 captureBuilder.set(CaptureRequest.JPEG_ORIENTATION, 0);
             }
             else{
@@ -308,21 +308,21 @@ public class PictureCapturingServiceImpl extends APictureCapturingService {
 
 
     private void registerImage(final byte[] bytes) {
-        annotatedImage.setTimeTaken(System.currentTimeMillis());
+        imageAnnotation.setTimeTaken(System.currentTimeMillis());
 
 
         String path = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES)
                 + File.separator
                 + "testset"
                 + File.separator
-                + annotatedImage.getRoomLabel()
+                + imageAnnotation.getLabel()
                 + File.separator;
 
         File directory = new File(path);
         if (!directory.exists() || !doSaveImage) {
             directory.mkdirs();
         }
-        File file = new File(directory, annotatedImage.encodeFilename());
+        File file = new File(directory, imageAnnotation.encodeFilename());
 
         if(doSaveImage) {
             try (final OutputStream outputStream = new FileOutputStream(file)) {

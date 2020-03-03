@@ -1,7 +1,5 @@
 package gr.iti.mklab.visual.utilities;
 
-import android.util.Log;
-
 import com.tud.alexw.visualplacerecognition.result.Annotation;
 
 /**
@@ -67,7 +65,7 @@ public class Answer {
 
     public void calculateAnnotations(){
         for(int i = 0; i< ids.length; i++){
-            annotations[i] = Annotation.fromFilename(ids[i]);
+            annotations[i] = Annotation.decodeFilename(ids[i]);
         }
     }
 
