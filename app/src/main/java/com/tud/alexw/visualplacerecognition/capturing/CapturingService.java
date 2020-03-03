@@ -63,9 +63,9 @@ import androidx.core.app.ActivityCompat;
  */
 
 @TargetApi(Build.VERSION_CODES.LOLLIPOP) //NOTE: camera 2 api was added in API level 21
-public class PictureCapturingServiceImpl extends APictureCapturingService {
+public class CapturingService extends AbstractCapturingService {
 
-    private static final String TAG = PictureCapturingServiceImpl.class.getSimpleName();
+    private static final String TAG = CapturingService.class.getSimpleName();
 
     private CameraDevice cameraDevice;
     private ImageReader imageReader;
@@ -82,7 +82,7 @@ public class PictureCapturingServiceImpl extends APictureCapturingService {
      * stores a sorted map of (pictureUrlOnDisk, PictureData).
      */
     private byte[] image;
-    private PictureCapturingListener capturingListener;
+    private CapturingListener capturingListener;
 
 //    private Handler mBackgroundHandler;
 //    private HandlerThread mBackgroundThread;
@@ -90,7 +90,7 @@ public class PictureCapturingServiceImpl extends APictureCapturingService {
     /***
      * private constructor, meant to force the use of {@link #getInstance}  method
      */
-    private PictureCapturingServiceImpl(final Activity activity) {
+    private CapturingService(final Activity activity) {
         super(activity);
     }
 
@@ -98,8 +98,8 @@ public class PictureCapturingServiceImpl extends APictureCapturingService {
      * @param activity the activity used to get the app's context and the display manager
      * @return a new instance
      */
-    public static APictureCapturingService getInstance(final Activity activity) {
-        return new PictureCapturingServiceImpl(activity);
+    public static AbstractCapturingService getInstance(final Activity activity) {
+        return new CapturingService(activity);
     }
 
     /**
@@ -108,7 +108,7 @@ public class PictureCapturingServiceImpl extends APictureCapturingService {
      * @param listener picture capturing listener
      */
     @Override
-    public void startCapturing(final PictureCapturingListener listener, ImageAnnotation imageAnnotation) {
+    public void startCapturing(final CapturingListener listener, ImageAnnotation imageAnnotation) {
         this.imageAnnotation = imageAnnotation;
         this.image = null;
         this.capturingListener = listener;

@@ -7,7 +7,6 @@ import androidx.core.content.ContextCompat;
 
 import android.Manifest;
 import android.annotation.TargetApi;
-import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.content.res.Configuration;
 import android.graphics.Bitmap;
@@ -15,7 +14,6 @@ import android.graphics.BitmapFactory;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
-import android.text.Annotation;
 import android.text.method.ScrollingMovementMethod;
 import android.util.Log;
 import android.view.View;
@@ -25,13 +23,12 @@ import android.widget.TextView;
 
 import com.segway.robot.sdk.base.bind.ServiceBinder;
 import com.segway.robot.sdk.locomotion.head.Head;
-import com.segway.robot.sdk.vision.Vision;
-import com.tud.alexw.visualplacerecognition.capturing.APictureCapturingService;
-import com.tud.alexw.visualplacerecognition.capturing.ImageCapturer;
-import com.tud.alexw.visualplacerecognition.capturing.ImageCapturerAndroid;
-import com.tud.alexw.visualplacerecognition.capturing.ImageCapturerLoomo;
-import com.tud.alexw.visualplacerecognition.capturing.PictureCapturingListener;
+import com.tud.alexw.visualplacerecognition.capturing.AbstractCapturingService;
+import com.tud.alexw.visualplacerecognition.capturing.CapturingListener;
 import com.tud.alexw.visualplacerecognition.evaluation.Tester;
+import com.tud.alexw.visualplacerecognition.framework.AsyncFrameworkSetup;
+import com.tud.alexw.visualplacerecognition.framework.Config;
+import com.tud.alexw.visualplacerecognition.framework.VLADPQFramework;
 import com.tud.alexw.visualplacerecognition.head.MoveHead;
 import com.tud.alexw.visualplacerecognition.head.MoveHeadListener;
 import com.tud.alexw.visualplacerecognition.result.ImageAnnotation;
@@ -39,7 +36,7 @@ import com.tud.alexw.visualplacerecognition.result.ImageAnnotation;
 import java.util.ArrayList;
 import java.util.List;
 
-public class MainActivity extends AppCompatActivity implements PictureCapturingListener, MoveHeadListener, ActivityCompat.OnRequestPermissionsResultCallback {
+public class MainActivity extends AppCompatActivity implements CapturingListener, MoveHeadListener, ActivityCompat.OnRequestPermissionsResultCallback {
 
     public static String TAG = "MainActivity";
 
@@ -50,7 +47,7 @@ public class MainActivity extends AppCompatActivity implements PictureCapturingL
 
     private Config mConfig;
     //The capture service
-    private APictureCapturingService pictureService;
+    private AbstractCapturingService pictureService;
     private ImageAnnotation mImageAnnotation;
     private MoveHead moveHead;
     private long captureTime_ms = 0;

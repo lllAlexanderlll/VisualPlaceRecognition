@@ -7,9 +7,9 @@ import android.os.AsyncTask;
 import android.util.Log;
 import android.widget.TextView;
 
-import com.tud.alexw.visualplacerecognition.Config;
+import com.tud.alexw.visualplacerecognition.framework.Config;
 import com.tud.alexw.visualplacerecognition.Utils;
-import com.tud.alexw.visualplacerecognition.VLADPQFramework;
+import com.tud.alexw.visualplacerecognition.framework.VLADPQFramework;
 import com.tud.alexw.visualplacerecognition.result.ImageAnnotation;
 
 import java.io.File;

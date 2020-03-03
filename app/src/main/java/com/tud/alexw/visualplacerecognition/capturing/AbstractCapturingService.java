@@ -24,7 +24,7 @@ import com.tud.alexw.visualplacerecognition.result.ImageAnnotation;
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  *
  */
-public abstract class APictureCapturingService {
+public abstract class AbstractCapturingService {
 
     private static final SparseIntArray ORIENTATIONS = new SparseIntArray();
 
@@ -45,7 +45,7 @@ public abstract class APictureCapturingService {
      *
      * @param activity the activity used to get display manager and the application context
      */
-    APictureCapturingService(final Activity activity) {
+    AbstractCapturingService(final Activity activity) {
         this.activity = activity;
         this.context = activity.getApplicationContext();
         this.manager = (CameraManager) context.getSystemService(Context.CAMERA_SERVICE);
@@ -66,7 +66,7 @@ public abstract class APictureCapturingService {
      *
      * @param listener picture capturing listener
      */
-    public abstract void startCapturing(final PictureCapturingListener listener, ImageAnnotation imageAnnotation);
+    public abstract void startCapturing(final CapturingListener listener, ImageAnnotation imageAnnotation);
 
     public abstract void endCapturing();
     public abstract void capture();

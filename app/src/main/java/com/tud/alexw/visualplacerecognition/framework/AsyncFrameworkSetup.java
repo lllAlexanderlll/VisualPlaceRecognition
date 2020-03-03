@@ -1,4 +1,4 @@
-package com.tud.alexw.visualplacerecognition;
+package com.tud.alexw.visualplacerecognition.framework;
 
 import android.content.Context;
 import android.os.AsyncTask;
@@ -7,10 +7,12 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
 
+import com.tud.alexw.visualplacerecognition.Utils;
+
 //Params, the type of the parameters sent to the task upon execution.
 //Progress, the type of the progress units published during the background computation.
 //Result, the type of the result of the background computation.
-class AsyncFrameworkSetup extends AsyncTask<Void, Void, String> {
+public class AsyncFrameworkSetup extends AsyncTask<Void, Void, String> {
 
     public static String TAG = "AsyncSetup";
     private Context mContext;
