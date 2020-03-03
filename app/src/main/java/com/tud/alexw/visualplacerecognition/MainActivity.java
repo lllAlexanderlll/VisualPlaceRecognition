@@ -14,7 +14,6 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.segway.robot.sdk.base.bind.ServiceBinder;
 import com.segway.robot.sdk.locomotion.head.Head;
@@ -22,7 +21,7 @@ import com.segway.robot.sdk.vision.Vision;
 import com.tud.alexw.visualplacerecognition.capturing.ImageCapturer;
 import com.tud.alexw.visualplacerecognition.capturing.ImageCapturerAndroid;
 import com.tud.alexw.visualplacerecognition.capturing.ImageCapturerLoomo;
-import com.tud.alexw.visualplacerecognition.test.Tester;
+import com.tud.alexw.visualplacerecognition.evaluation.Tester;
 
 public class MainActivity extends AppCompatActivity {
 

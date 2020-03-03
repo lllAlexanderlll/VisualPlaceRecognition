@@ -1,4 +1,4 @@
-package com.tud.alexw.visualplacerecognition.test;
+package com.tud.alexw.visualplacerecognition.evaluation;
 
 import android.content.Context;
 import android.graphics.Bitmap;
@@ -15,12 +15,9 @@ import com.tud.alexw.visualplacerecognition.result.Annotation;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.nio.file.Files;
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
-import java.util.Calendar;
 import java.util.Date;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
 
