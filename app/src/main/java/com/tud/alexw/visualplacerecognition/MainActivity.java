@@ -2,12 +2,20 @@ package com.tud.alexw.visualplacerecognition;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
 
+import android.Manifest;
+import android.annotation.TargetApi;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.content.res.Configuration;
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Handler;
+import android.text.Annotation;
 import android.text.method.ScrollingMovementMethod;
 import android.util.Log;
 import android.view.View;
@@ -22,32 +30,42 @@ import com.tud.alexw.visualplacerecognition.capturing.APictureCapturingService;
 import com.tud.alexw.visualplacerecognition.capturing.ImageCapturer;
 import com.tud.alexw.visualplacerecognition.capturing.ImageCapturerAndroid;
 import com.tud.alexw.visualplacerecognition.capturing.ImageCapturerLoomo;
+import com.tud.alexw.visualplacerecognition.capturing.PictureCapturingListener;
 import com.tud.alexw.visualplacerecognition.evaluation.Tester;
 import com.tud.alexw.visualplacerecognition.head.MoveHead;
+import com.tud.alexw.visualplacerecognition.head.MoveHeadListener;
+import com.tud.alexw.visualplacerecognition.result.ImageAnnotation;
 
-public class MainActivity extends AppCompatActivity {
+import java.util.ArrayList;
+import java.util.List;
+
+public class MainActivity extends AppCompatActivity implements PictureCapturingListener, MoveHeadListener, ActivityCompat.OnRequestPermissionsResultCallback {
 
     public static String TAG = "MainActivity";
 
-    private Vision mVision;
     private Head mHead;
     VLADPQFramework mVLADPQFramework;
 
-    public boolean mRunningOnLoomo = true;
-    private ImageCapturer mImageCapturer;
     private Bitmap mBitmap;
 
     private Config mConfig;
     //The capture service
     private APictureCapturingService pictureService;
-
+    private ImageAnnotation mImageAnnotation;
     private MoveHead moveHead;
+    private long captureTime_ms = 0;
 
     private TextView mStatusTextView;
     private TextView mResultTextView;
     private ImageView mImageView;
     private Button mCaptureButton;
     private TextView mTestTextView;
+
+    private static final String[] requiredPermissions = {
+            Manifest.permission.WRITE_EXTERNAL_STORAGE,
+            Manifest.permission.CAMERA,
+    };
+    private static final int MY_PERMISSIONS_REQUEST_ACCESS_CODE = 1;
 
 
     @Override
@@ -61,24 +79,26 @@ public class MainActivity extends AppCompatActivity {
         mResultTextView = (TextView) findViewById(R.id.result);
         mImageView = (ImageView) findViewById(R.id.imageView);
 
+        mStatusTextView.setMovementMethod(new ScrollingMovementMethod());
+        mResultTextView.setMovementMethod(new ScrollingMovementMethod());
+        mCaptureButton.setEnabled(false);
 
-        // get Vision SDK instance
-        mVision = Vision.getInstance();
+        //Setup loomo
         mHead = Head.getInstance();
+        mHead.bindService(getApplicationContext(), mServiceBindListenerHead);
 
-        // Setup loomo
-        mRunningOnLoomo &= mVision.bindService(this, mBindStateListenerVision);
-        mRunningOnLoomo &= mHead.bindService(getApplicationContext(), mServiceBindListenerHead);
+        pictureService.setDoSaveImage(false);
+        pictureService.startCapturing(this, mImageAnnotation);
+        int[] pitchValues = {   0,   0,   0,   0,  0,  0,  0, 35,  35,  35,  35, 35, 35, 35, 145, 145, 145, 145, 145, 174, 174, 174, 174, 174};
+        int[] yawValues = {     0, -30, -60, -90, 90, 60, 30,  0, -30, -60, -90, 90, 60, 30,   0, -30, -60,  60,  30,   0, -30, -60,  60,  30};
+//        int[] pitchValues = {   0, 35, 145, 174};
+//        int[] yawValues = {     0,  0,   0,   0};
+//            int[] pitchValues = {   0, 45};
+//            int[] yawValues = {     0, 0};
+        moveHead = new MoveHead(mHead, this, yawValues, pitchValues);
 
         try{
             mConfig = Config.getConfigLoomo(getApplicationContext());
-//            if(mRunningOnLoomo){
-//                mConfig = Config.getConfigLoomo(getApplicationContext());
-//            }
-//            else{
-//                mConfig = Config.getConfigAndroid(getApplicationContext());
-//            }
-
             Log.i(TAG, mConfig.toString());
         }
         catch (Exception e) {
@@ -87,21 +107,6 @@ public class MainActivity extends AppCompatActivity {
             Utils.addTextRed(mStatusTextView, e.getMessage());
             Log.e(TAG, e.getMessage() + "\n" + msg);
             return;
-        }
-
-
-
-
-        if (mRunningOnLoomo) {
-            mImageCapturer = new ImageCapturerLoomo(mVision);
-            findViewById(R.id.loomoFlag).setVisibility(View.VISIBLE);
-        } else {
-            mImageCapturer = new ImageCapturerAndroid(this, mImageView);
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                ((ImageCapturerAndroid)mImageCapturer).cameraPermission();
-            }
-            mVision = null;
-            mHead = null;
         }
 
         //setup and check storage and files
@@ -122,13 +127,11 @@ public class MainActivity extends AppCompatActivity {
         }
 
 
-        mStatusTextView.setMovementMethod(new ScrollingMovementMethod());
-        mResultTextView.setMovementMethod(new ScrollingMovementMethod());
-        mCaptureButton.setEnabled(false);
+        // Load index
         Utils.addText(mStatusTextView, "Loading index...");
-
         new AsyncFrameworkSetup(mVLADPQFramework, mStatusTextView, mConfig.isDoRunTests() ? null : mCaptureButton, mConfig.isDoRunTests(), getApplicationContext()).execute();
 
+        // Check if evaluation is wanted
         if(mConfig.isDoRunTests()) {
             mTestTextView.setVisibility(View.VISIBLE);
             new Tester(getApplicationContext(), mVLADPQFramework, mStatusTextView).execute();
@@ -140,72 +143,51 @@ public class MainActivity extends AppCompatActivity {
         mCaptureButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (mRunningOnLoomo) {
-                    mHead.setWorldPitch(Utils.degreeToRad(45));
-                    Utils.moveHead(mHead, 0, 0);
-
-                    new Thread(new Runnable() {
-                        @Override
-                        public void run() {
-                            int[] yawMoves   = new int[]{90, 0, 0, -90};
-                            int[] pitchMoves = new int[]{0, 0, 0, 0}; //It's a lie! --> Camera in use is not influenced by pitch
-                            mConfig.setnQueriesForResult(yawMoves.length); // capturing convinience! --> not part of tests therefore hash code generation not a problem
-                            int pitch_deg;
-                            int yaw_deg;
-                            if(mConfig.getnQueriesForResult() != yawMoves.length || yawMoves.length != pitchMoves.length){
-                                Log.e(TAG, "Check 'mConfig.nQueriesForResult != yawMoves.length || yawMoves.length != pitchMoves.length' failed");
-                                return;
-                            }
-
-                            for (int i = 0; i < mConfig.getnQueriesForResult(); i++) {
-
-                                yaw_deg = yawMoves[i];
-                                pitch_deg = pitchMoves[i];
-                                Log.i(TAG, String.format("Image %d %d %d",i, yaw_deg, pitch_deg));
-                                Utils.moveHead(mHead, yaw_deg, pitch_deg);
-                                try {
-                                    mBitmap = mImageCapturer.getImage();
-                                } catch (Exception e) {
-                                    Log.e("Capture:", Log.getStackTraceString(e));
-                                }
-
-                                //update UI and start inferenceAndNNS
-                                runOnUiThread(new Runnable() {
-                                    @Override
-                                    public void run() {
-                                        mStatusTextView.setText("");
-                                        if (mBitmap == null) {
-                                            Utils.addTextRed(mStatusTextView, "Capture: Bitmap is null!");
-                                        } else {
-                                            mImageView.setImageBitmap(mBitmap);
-                                            try{
-                                                mVLADPQFramework.inferenceAndNNS(mBitmap);
-                                            }
-                                            catch (Exception e){
-                                                String msg = Log.getStackTraceString(e);
-                                                Utils.addTextRed(mStatusTextView, e.getMessage());
-                                                Log.e(TAG, e.getMessage() + "\n" + msg);
-                                            }
-                                            Utils.addTextNumbersBlue(mStatusTextView, mVLADPQFramework.popStatusString());
-                                            Utils.addTextNumbersBlue(mResultTextView, mVLADPQFramework.popResultString());
-                                        }
-                                    }
-                                });
-                            }
-                            mHead.resetOrientation();
-                        }
-                    }).start();
-                } else {
-                   try{
-                       ((ImageCapturerAndroid)mImageCapturer).dispatchTakePictureIntent();
-                   }
-                   catch (Exception e){
-                       Log.e("Capture:", Log.getStackTraceString(e));
-                   }
-                }
-
+                mHead.resetOrientation();
+                moveHead.next();
             }
         });
+
+    }
+
+
+    @Override
+    public void onHeadMovementDone(int yaw, int pitch) {
+        Log.i(TAG, String.format("Head movement (%d, %d) done" , yaw, pitch));
+        captureTime_ms = System.currentTimeMillis();
+        pictureService.capture();
+        final Handler handler = new Handler();
+        handler.postDelayed(() -> {
+            if(System.currentTimeMillis() - captureTime_ms > 2000){
+                Log.e(TAG, "Needed to restart capturing after time limit reached!");
+                pictureService.capture();
+            }
+        }, 2000);
+    }
+
+    @Override
+    public void onCaptureDone(byte[] pictureData) {
+        if (pictureData != null) {
+            runOnUiThread(() -> showImage(pictureData));
+            Log.i(TAG, String.format("Taking a photo took %d ms", System.currentTimeMillis() - captureTime_ms));
+            captureTime_ms = System.currentTimeMillis();
+            moveHead.next();
+        }
+    }
+
+
+    @Override
+    public void onAllHeadMovementsDone(){
+        Log.i(TAG, "No movements left! Capturing finished!");
+//        Log.e(TAG, "Start capturing all over again: Infinity loop!");
+//        pictureService.capture();
+    }
+
+
+    @Override
+    public void onCapturingFailed(){
+        Log.e(TAG, "Capturing failed!");
+        moveHead.retry();
     }
 
     @Override
@@ -216,13 +198,11 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     protected void onStop() {
+        mHead.unbindService();
+        pictureService.endCapturing();
         super.onStop();
-        if (mRunningOnLoomo) {
-            ((ImageCapturerLoomo) mImageCapturer).stopFrameListening();
-            mVision.unbindService();
-            mHead.unbindService();
-        }
-        super.onStop();
+        finish();
+
 //        Toast.makeText(getApplicationContext(), "onStop() called!", Toast.LENGTH_SHORT).show();
     }
 
@@ -235,21 +215,16 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
-        if (mRunningOnLoomo) {
-            if (!mHead.isBind()) {
-                mHead.bindService(getApplicationContext(), mServiceBindListenerHead);
-            }
-            mVision.bindService(this, mBindStateListenerVision);
+        if (!mHead.isBind()) {
+            mHead.bindService(getApplicationContext(), mServiceBindListenerHead);
         }
 //        Toast.makeText(getApplicationContext(), "onResume() called!", Toast.LENGTH_SHORT).show();
     }
 
     @Override
     protected void onDestroy() {
-        if (mRunningOnLoomo) {
-            mVision.unbindService();
-            mHead.unbindService();
-        }
+        mHead.unbindService();
+        pictureService.endCapturing();
         super.onDestroy();
     }
 
@@ -260,55 +235,63 @@ public class MainActivity extends AppCompatActivity {
         super.onConfigurationChanged(newConfig);
     }
 
-    @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        if (mRunningOnLoomo) {
-            super.onActivityResult(requestCode, resultCode, data);
-        } else {
-            if (requestCode == ((ImageCapturerAndroid)mImageCapturer).REQUEST_IMAGE_CAPTURE && resultCode == RESULT_OK) {
-                ((ImageCapturerAndroid)mImageCapturer).setPic();
-                try{
-                    mVLADPQFramework.inferenceAndNNS(mImageCapturer.getImage());
-                }
-                catch (Exception e){
-                    String msg = Log.getStackTraceString(e);
-                    Utils.addTextRed(mStatusTextView, e.getMessage());
-                    Log.e(TAG, e.getMessage() + "\n" + msg);
-                }
-                Utils.addTextNumbersBlue(mStatusTextView, mVLADPQFramework.popStatusString());
-                Utils.addTextNumbersBlue(mResultTextView, mVLADPQFramework.popResultString());
-            }
-        }
+//                Utils.addTextNumbersBlue(mStatusTextView, mVLADPQFramework.popStatusString());
+//                Utils.addTextNumbersBlue(mResultTextView, mVLADPQFramework.popResultString());
 
+
+    private void showImage(byte[] pictureData) {
+        // Get the dimensions of the View
+        int targetW = mImageView.getWidth();
+        int targetH = mImageView.getHeight();
+
+        // Get the dimensions of the bitmap
+        BitmapFactory.Options bmOptions = new BitmapFactory.Options();
+        bmOptions.inJustDecodeBounds = true;
+
+        int photoW = bmOptions.outWidth;
+        int photoH = bmOptions.outHeight;
+
+        // Determine how much to scale down the image
+        int scaleFactor = Math.min(photoW/targetW, photoH/targetH);
+
+        // Decode the image file into a Bitmap sized to fill the View
+        bmOptions.inJustDecodeBounds = false;
+        bmOptions.inSampleSize = scaleFactor;
+        bmOptions.inPurgeable = true;
+
+        Bitmap bitmap = BitmapFactory.decodeByteArray(pictureData, 0, pictureData.length, bmOptions);
+        mImageView.setImageBitmap(bitmap);
     }
 
     @Override
-    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
-
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-        ((ImageCapturerAndroid)mImageCapturer).onRequestPermissionsResult(requestCode, permissions, grantResults);
-
+    public void onRequestPermissionsResult(int requestCode, @NonNull String permissions[], @NonNull int[] grantResults) {
+        switch (requestCode) {
+            case MY_PERMISSIONS_REQUEST_ACCESS_CODE: {
+                if (!(grantResults.length > 0
+                        && grantResults[0] == PackageManager.PERMISSION_GRANTED)) {
+                    checkPermissions();
+                }
+            }
+        }
     }
 
-    ServiceBinder.BindStateListener mBindStateListenerVision = new ServiceBinder.BindStateListener() {
-        @Override
-        public void onBind() {
-            Log.d(TAG, "Vision onBind() called");
-            if (mRunningOnLoomo) {
-                ((ImageCapturerLoomo) mImageCapturer).startFrameListening();
+    /**
+     * checking  permissions at Runtime.
+     */
+    @TargetApi(Build.VERSION_CODES.M)
+    private void checkPermissions() {
+        final List<String> neededPermissions = new ArrayList<>();
+        for (final String permission : requiredPermissions) {
+            if (ContextCompat.checkSelfPermission(getApplicationContext(),
+                    permission) != PackageManager.PERMISSION_GRANTED) {
+                neededPermissions.add(permission);
             }
-            Button button = (Button) findViewById(R.id.capture);
-            while (!mImageCapturer.gotBitmap()) {
-                Log.v(TAG, String.format("Waiting for image capture."));
-            }
-            button.setEnabled(true);
         }
-
-        @Override
-        public void onUnbind(String reason) {
-            Log.d(TAG, "Vision onUnbind() called with: reason = [" + reason + "]");
+        if (!neededPermissions.isEmpty()) {
+            requestPermissions(neededPermissions.toArray(new String[]{}),
+                    MY_PERMISSIONS_REQUEST_ACCESS_CODE);
         }
-    };
+    }
 
     private ServiceBinder.BindStateListener mServiceBindListenerHead = new ServiceBinder.BindStateListener() {
         @Override

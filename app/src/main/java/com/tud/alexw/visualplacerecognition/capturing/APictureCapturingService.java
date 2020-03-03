@@ -6,7 +6,7 @@ import android.hardware.camera2.CameraManager;
 import android.util.SparseIntArray;
 import android.view.Surface;
 
-import com.tud.alexw.visualplacerecognition.result.Annotation;
+import com.tud.alexw.visualplacerecognition.result.ImageAnnotation;
 
 /**
  * Abstract Picture Taking Service.
@@ -66,7 +66,7 @@ public abstract class APictureCapturingService {
      *
      * @param listener picture capturing listener
      */
-    public abstract void startCapturing(final PictureCapturingListener listener, Annotation imageAnnotation);
+    public abstract void startCapturing(final PictureCapturingListener listener, ImageAnnotation imageAnnotation);
 
     public abstract void endCapturing();
     public abstract void capture();

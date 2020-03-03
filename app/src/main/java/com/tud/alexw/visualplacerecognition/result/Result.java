@@ -4,7 +4,6 @@ import android.util.Log;
 
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
@@ -46,11 +45,11 @@ public class Result {
             Arrays.fill(answers, null);
         }
         answer.calculateAnnotations();
-        for(Annotation annotation :answer.getAnnotations()){
-            sumX += annotation.x;
-            sumY += annotation.y;
-            sumPitch += annotation.pitch;
-            sumYaw += annotation.yaw;
+        for(ImageAnnotation imageAnnotation :answer.getImageAnnotations()){
+            sumX += imageAnnotation.x;
+            sumY += imageAnnotation.y;
+            sumPitch += imageAnnotation.pitch;
+            sumYaw += imageAnnotation.yaw;
         }
         answers[queryCounter] = answer;
         queryCounter++;
@@ -69,12 +68,12 @@ public class Result {
     }
 
     public void majorityCount(){
-        int resultLength = answers.length * answers[0].getAnnotations().length;
+        int resultLength = answers.length * answers[0].getImageAnnotations().length;
         final String[] labels = new String[resultLength];
         int count = 0;
         for(int i=0; i < answers.length; i++){
-            for(int k = 0; k < answers[i].getAnnotations().length; k++) {
-                labels[count] = answers[i].getAnnotations()[k].label;
+            for(int k = 0; k < answers[i].getImageAnnotations().length; k++) {
+                labels[count] = answers[i].getImageAnnotations()[k].label;
                 count++;
             }
         }
@@ -99,7 +98,7 @@ public class Result {
 
     public int[] getMeanPose(){
         if(answers.length > 0){
-            int nRetrieved = (answers.length * answers[0].getAnnotations().length);
+            int nRetrieved = (answers.length * answers[0].getImageAnnotations().length);
             return new int[]{
                     sumX / nRetrieved ,
                     sumY / nRetrieved ,

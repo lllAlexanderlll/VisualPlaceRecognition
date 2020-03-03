@@ -3,7 +3,7 @@ package com.tud.alexw.visualplacerecognition;
 import android.graphics.Bitmap;
 import android.util.Log;
 
-import com.tud.alexw.visualplacerecognition.result.Annotation;
+import com.tud.alexw.visualplacerecognition.result.ImageAnnotation;
 import com.tud.alexw.visualplacerecognition.result.MajorityCount;
 import com.tud.alexw.visualplacerecognition.result.Result;
 
@@ -168,16 +168,16 @@ public class VLADPQFramework {
 
     private void addToAnnotationsCSV(Answer answer){
         int rank = 0;
-        for(Annotation annotation : answer.getAnnotations()){
+        for(ImageAnnotation imageAnnotation : answer.getImageAnnotations()){
             mStringBuilderAnnotationCSV
                     .append(mInferenceCounter-1).append(",")
                     .append(mResultCounter).append(",")
                     .append(rank).append(",")
-                    .append(annotation.label).append(",")
-                    .append(annotation.x).append(",")
-                    .append(annotation.y).append(",")
-                    .append(annotation.yaw).append(",")
-                    .append(annotation.pitch).append(",")
+                    .append(imageAnnotation.label).append(",")
+                    .append(imageAnnotation.x).append(",")
+                    .append(imageAnnotation.y).append(",")
+                    .append(imageAnnotation.yaw).append(",")
+                    .append(imageAnnotation.pitch).append(",")
                     .append(answer.getDistances()[rank]).append("\n");
             rank++;
         }

@@ -1,6 +1,6 @@
 package gr.iti.mklab.visual.utilities;
 
-import com.tud.alexw.visualplacerecognition.result.Annotation;
+import com.tud.alexw.visualplacerecognition.result.ImageAnnotation;
 
 /**
  * Objects of this class represent the response of an index structure to a query.
@@ -37,7 +37,7 @@ public class Answer {
         return distances;
     }
 
-    public Annotation[] annotations;
+    public ImageAnnotation[] imageAnnotations;
 
     /**
      * Constructor
@@ -52,7 +52,7 @@ public class Answer {
         this.distances = distances;
         this.nameLookupTime = nameLookupTime;
         this.indexSearchTime = indexSearchTime;
-        this.annotations = new Annotation[distances.length];
+        this.imageAnnotations = new ImageAnnotation[distances.length];
     }
 
     public long getIndexSearchTime() {
@@ -65,12 +65,12 @@ public class Answer {
 
     public void calculateAnnotations(){
         for(int i = 0; i< ids.length; i++){
-            annotations[i] = Annotation.decodeFilename(ids[i]);
+            imageAnnotations[i] = ImageAnnotation.decodeFilename(ids[i]);
         }
     }
 
-    public Annotation[] getAnnotations(){
-        return annotations;
+    public ImageAnnotation[] getImageAnnotations(){
+        return imageAnnotations;
     }
 
 

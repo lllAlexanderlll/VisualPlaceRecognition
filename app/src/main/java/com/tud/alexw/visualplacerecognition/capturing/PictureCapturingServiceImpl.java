@@ -27,7 +27,7 @@ import android.util.Range;
 import android.util.Size;
 import android.view.Surface;
 
-import com.tud.alexw.visualplacerecognition.result.Annotation;
+import com.tud.alexw.visualplacerecognition.result.ImageAnnotation;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -77,7 +77,7 @@ public class PictureCapturingServiceImpl extends APictureCapturingService {
     private String currentCameraId;
     private boolean cameraClosed;
 
-    private Annotation imageAnnotation;
+    private ImageAnnotation imageAnnotation;
     /**
      * stores a sorted map of (pictureUrlOnDisk, PictureData).
      */
@@ -108,7 +108,7 @@ public class PictureCapturingServiceImpl extends APictureCapturingService {
      * @param listener picture capturing listener
      */
     @Override
-    public void startCapturing(final PictureCapturingListener listener, Annotation imageAnnotation) {
+    public void startCapturing(final PictureCapturingListener listener, ImageAnnotation imageAnnotation) {
         this.imageAnnotation = imageAnnotation;
         this.image = null;
         this.capturingListener = listener;

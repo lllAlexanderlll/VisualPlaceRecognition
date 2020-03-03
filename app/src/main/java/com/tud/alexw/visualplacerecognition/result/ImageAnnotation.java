@@ -5,17 +5,16 @@ import android.util.Log;
 import java.sql.Timestamp;
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
-import java.util.regex.Pattern;
 
 import androidx.annotation.NonNull;
 
-public class Annotation{
+public class ImageAnnotation {
     public int x, y, yaw, pitch;
     public String label;
     private static String TAG = "Annotation";
     private long timeTaken;
 
-    public Annotation(int x, int y, int yaw, int pitch, String label) {
+    public ImageAnnotation(int x, int y, int yaw, int pitch, String label) {
         this.x = x;
         this.y = y;
         this.yaw = yaw;
@@ -24,7 +23,7 @@ public class Annotation{
         this.timeTaken = -1;
     }
 
-    public static Annotation decodeFilename(String filename){
+    public static ImageAnnotation decodeFilename(String filename){
             String[] split = filename.split("\\.");
             if(split.length != 2){
                 Log.e(TAG, "Couldn't decode file. Invalid filename (exactly one dot allowed): " + filename);
@@ -48,7 +47,7 @@ public class Annotation{
             int y = Integer.parseInt(annotations[annotations.length - 3]);
             int yaw = Integer.parseInt(annotations[annotations.length - 2]);
             int pitch = Integer.parseInt(annotations[annotations.length - 1]);
-            return new Annotation(x, y, yaw, pitch, label);
+            return new ImageAnnotation(x, y, yaw, pitch, label);
     }
 
     private void transformToGlobalCoordinates(){

@@ -10,7 +10,7 @@ import android.widget.TextView;
 import com.tud.alexw.visualplacerecognition.Config;
 import com.tud.alexw.visualplacerecognition.Utils;
 import com.tud.alexw.visualplacerecognition.VLADPQFramework;
-import com.tud.alexw.visualplacerecognition.result.Annotation;
+import com.tud.alexw.visualplacerecognition.result.ImageAnnotation;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -63,7 +63,7 @@ public class Tester extends AsyncTask<Void, Void, String>{
 
     private boolean test() throws Exception {
         Bitmap bitmap;
-        Annotation annotation;
+        ImageAnnotation imageAnnotation;
         int lastResultCounter =  0;
         List<File> files;
         int count = 0;
@@ -79,17 +79,17 @@ public class Tester extends AsyncTask<Void, Void, String>{
                     bitmap = BitmapFactory.decodeFile(file.getAbsolutePath());
                     mVLADPQFramework.inferenceAndNNS(bitmap);
                     Log.i(TAG, "Decoding query file:");
-                    annotation = Annotation.decodeFilename(file.getName());
-                    if (annotation != null) {
+                    imageAnnotation = ImageAnnotation.decodeFilename(file.getName());
+                    if (imageAnnotation != null) {
                         stringBuilderQueryCSV
                                 .append(count).append(",")
                                 .append(mVLADPQFramework.getInferenceTime()).append(",")
                                 .append(mVLADPQFramework.getmSearchTime()).append(",")
-                                .append(annotation.label).append(",")
-                                .append(annotation.x).append(",")
-                                .append(annotation.y).append(",")
-                                .append(annotation.yaw).append(",")
-                                .append(annotation.pitch).append("\n");
+                                .append(imageAnnotation.label).append(",")
+                                .append(imageAnnotation.x).append(",")
+                                .append(imageAnnotation.y).append(",")
+                                .append(imageAnnotation.yaw).append(",")
+                                .append(imageAnnotation.pitch).append("\n");
                         count++;
                     } else {
                         Log.e(TAG, "Couldn't decode query filename!");
