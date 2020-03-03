@@ -1,6 +1,6 @@
 package gr.iti.mklab.visual.utilities;
 
-import com.tud.alexw.visualplacerecognition.result.ImageAnnotation;
+import com.tud.alexw.visualplacerecognition.framework.ImageAnnotation;
 
 /**
  * Objects of this class represent the response of an index structure to a query.

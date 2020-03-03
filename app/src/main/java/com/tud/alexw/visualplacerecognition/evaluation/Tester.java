@@ -10,7 +10,7 @@ import android.widget.TextView;
 import com.tud.alexw.visualplacerecognition.framework.Config;
 import com.tud.alexw.visualplacerecognition.Utils;
 import com.tud.alexw.visualplacerecognition.framework.VLADPQFramework;
-import com.tud.alexw.visualplacerecognition.result.ImageAnnotation;
+import com.tud.alexw.visualplacerecognition.framework.ImageAnnotation;
 
 import java.io.File;
 import java.io.FileOutputStream;

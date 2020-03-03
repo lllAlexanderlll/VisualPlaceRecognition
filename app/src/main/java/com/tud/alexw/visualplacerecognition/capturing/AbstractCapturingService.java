@@ -6,7 +6,7 @@ import android.hardware.camera2.CameraManager;
 import android.util.SparseIntArray;
 import android.view.Surface;
 
-import com.tud.alexw.visualplacerecognition.result.ImageAnnotation;
+import com.tud.alexw.visualplacerecognition.framework.ImageAnnotation;
 
 /**
  * Abstract Picture Taking Service.

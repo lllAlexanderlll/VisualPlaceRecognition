@@ -3,10 +3,6 @@ package com.tud.alexw.visualplacerecognition.framework;
 import android.graphics.Bitmap;
 import android.util.Log;
 
-import com.tud.alexw.visualplacerecognition.result.ImageAnnotation;
-import com.tud.alexw.visualplacerecognition.result.MajorityCount;
-import com.tud.alexw.visualplacerecognition.result.Result;
-
 import gr.iti.mklab.visual.aggregation.AbstractFeatureAggregator;
 import gr.iti.mklab.visual.aggregation.VladAggregatorMultipleVocabularies;
 import gr.iti.mklab.visual.datastructures.AbstractSearchStructure;
@@ -38,7 +34,7 @@ public class VLADPQFramework {
     private StringBuilder mStringBuilderAnnotationCSV;
     private int mResultCounter = 0;
 
-    VLADPQFramework(Config config) {
+    public VLADPQFramework(Config config) {
         mIsSetup = false;
         mConfig = config;
         mResult = new Result(mConfig.getnQueriesForResult());

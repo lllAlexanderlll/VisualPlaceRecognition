@@ -1,4 +1,4 @@
-package com.tud.alexw.visualplacerecognition.result;
+package com.tud.alexw.visualplacerecognition.framework;
 
 import android.util.Log;
 

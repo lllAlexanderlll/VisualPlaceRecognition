@@ -27,7 +27,7 @@ import android.util.Range;
 import android.util.Size;
 import android.view.Surface;
 
-import com.tud.alexw.visualplacerecognition.result.ImageAnnotation;
+import com.tud.alexw.visualplacerecognition.framework.ImageAnnotation;
 
 import java.io.File;
 import java.io.FileOutputStream;

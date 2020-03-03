@@ -31,7 +31,7 @@ import com.tud.alexw.visualplacerecognition.framework.Config;
 import com.tud.alexw.visualplacerecognition.framework.VLADPQFramework;
 import com.tud.alexw.visualplacerecognition.head.MoveHead;
 import com.tud.alexw.visualplacerecognition.head.MoveHeadListener;
-import com.tud.alexw.visualplacerecognition.result.ImageAnnotation;
+import com.tud.alexw.visualplacerecognition.framework.ImageAnnotation;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -169,7 +169,15 @@ public class MainActivity extends AppCompatActivity implements CapturingListener
             Log.i(TAG, String.format("Taking a photo took %d ms", System.currentTimeMillis() - captureTime_ms));
             captureTime_ms = System.currentTimeMillis();
             moveHead.next();
+            try{
+                mVLADPQFramework.inferenceAndNNS(BitmapFactory.decodeByteArray(pictureData, 0, pictureData.length));
+                Utils.addTextNumbersBlue(mStatusTextView, mVLADPQFramework.popStatusString());
+                Utils.addTextNumbersBlue(mResultTextView, mVLADPQFramework.popResultString());
+            }catch (Exception e){
+                e.printStackTrace();
+            }
         }
+
     }
 
 
@@ -231,9 +239,6 @@ public class MainActivity extends AppCompatActivity implements CapturingListener
         // ignore orientation/keyboard change
         super.onConfigurationChanged(newConfig);
     }
-
-//                Utils.addTextNumbersBlue(mStatusTextView, mVLADPQFramework.popStatusString());
-//                Utils.addTextNumbersBlue(mResultTextView, mVLADPQFramework.popResultString());
 
 
     private void showImage(byte[] pictureData) {
