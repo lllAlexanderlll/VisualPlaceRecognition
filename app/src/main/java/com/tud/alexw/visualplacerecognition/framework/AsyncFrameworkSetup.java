@@ -52,6 +52,7 @@ public class AsyncFrameworkSetup extends AsyncTask<Void, Void, String> {
 
     protected void onPostExecute(String result) {
 
+        Utils.logMemory();
         if(mButton != null){
             mButton.setVisibility(View.VISIBLE);
             mButton.setEnabled(true);

@@ -3,10 +3,13 @@ package com.tud.alexw.visualplacerecognition.capturing;
 import android.app.Activity;
 import android.content.Context;
 import android.hardware.camera2.CameraManager;
+import android.media.Image;
 import android.util.SparseIntArray;
 import android.view.Surface;
 
 import com.tud.alexw.visualplacerecognition.framework.ImageAnnotation;
+
+import java.lang.annotation.Annotation;
 
 /**
  * Abstract Picture Taking Service.
@@ -39,6 +42,7 @@ public abstract class AbstractCapturingService {
     final Context context;
     final CameraManager manager;
     boolean doSaveImage;
+    ImageAnnotation imageAnnotation;
 
     /***
      * constructor.

@@ -186,7 +186,7 @@ public class Config {
     }
 
     public static Config getConfigLoomo(Context context) throws IOException {
-        int projectedVectorLength = 8192;
+        int projectedVectorLength = 256;
         return new Config(
                 context,
                 false,
@@ -199,12 +199,11 @@ public class Config {
                         "deploy/codebooks/codebook_features_split_0_dim_64_centroids_128.csv"
                 },
                 new int[]{128},
-                false,
-                //"captureUni/pca1024/pca_8192_to_1024.txt",
-                "captureUni/pca256/pca_8192_to_256.txt",
+                true,
+                "deploy/pca_8192_dim_vec/pca_8192_to_256.txt",
                 projectedVectorLength,
                 true,
-                "deploy/linearIndex/singleCodebook/BDB_499392_surf_8192",
+                "deploy/linearIndex/singleCodebook/BDB_499392_surf_8192to256w",
                 "",
                 "",
                 8,

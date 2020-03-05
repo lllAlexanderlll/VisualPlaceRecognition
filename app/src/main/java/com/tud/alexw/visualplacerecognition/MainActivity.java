@@ -7,6 +7,7 @@ import androidx.core.content.ContextCompat;
 
 import android.Manifest;
 import android.annotation.TargetApi;
+import android.app.ActivityManager;
 import android.content.pm.PackageManager;
 import android.content.res.Configuration;
 import android.graphics.Bitmap;
@@ -25,6 +26,7 @@ import com.segway.robot.sdk.base.bind.ServiceBinder;
 import com.segway.robot.sdk.locomotion.head.Head;
 import com.tud.alexw.visualplacerecognition.capturing.AbstractCapturingService;
 import com.tud.alexw.visualplacerecognition.capturing.CapturingListener;
+import com.tud.alexw.visualplacerecognition.capturing.CapturingService;
 import com.tud.alexw.visualplacerecognition.evaluation.Tester;
 import com.tud.alexw.visualplacerecognition.framework.AsyncFrameworkSetup;
 import com.tud.alexw.visualplacerecognition.framework.Config;
@@ -35,6 +37,8 @@ import com.tud.alexw.visualplacerecognition.framework.ImageAnnotation;
 
 import java.util.ArrayList;
 import java.util.List;
+
+import static android.content.pm.ApplicationInfo.FLAG_LARGE_HEAP;
 
 public class MainActivity extends AppCompatActivity implements CapturingListener, MoveHeadListener, ActivityCompat.OnRequestPermissionsResultCallback {
 
@@ -47,7 +51,7 @@ public class MainActivity extends AppCompatActivity implements CapturingListener
 
     private Config mConfig;
     //The capture service
-    private AbstractCapturingService pictureService;
+    private AbstractCapturingService capturingService;
     private ImageAnnotation mImageAnnotation;
     private MoveHead moveHead;
     private long captureTime_ms = 0;
@@ -65,10 +69,13 @@ public class MainActivity extends AppCompatActivity implements CapturingListener
     private static final int MY_PERMISSIONS_REQUEST_ACCESS_CODE = 1;
 
 
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        Utils.logMemory();
 
         mTestTextView = (TextView) findViewById(R.id.test);
         mCaptureButton = (Button) findViewById(R.id.capture);
@@ -80,12 +87,15 @@ public class MainActivity extends AppCompatActivity implements CapturingListener
         mResultTextView.setMovementMethod(new ScrollingMovementMethod());
         mCaptureButton.setEnabled(false);
 
+        mImageAnnotation = new ImageAnnotation(-1,-1,-1,-1,null);
+
         //Setup loomo
         mHead = Head.getInstance();
         mHead.bindService(getApplicationContext(), mServiceBindListenerHead);
 
-        pictureService.setDoSaveImage(false);
-        pictureService.startCapturing(this, mImageAnnotation);
+        capturingService = CapturingService.getInstance(this);
+        capturingService.setDoSaveImage(false);
+        capturingService.startCapturing(this, mImageAnnotation);
 //        int[] pitchValues = {   0,   0,   0,   0,  0,  0,  0, 35,  35,  35,  35, 35, 35, 35, 145, 145, 145, 145, 145, 174, 174, 174, 174, 174};
 //        int[] yawValues = {     0, -30, -60, -90, 90, 60, 30,  0, -30, -60, -90, 90, 60, 30,   0, -30, -60,  60,  30,   0, -30, -60,  60,  30};
 //        int[] pitchValues = {   0, 35, 145, 174};
@@ -151,15 +161,17 @@ public class MainActivity extends AppCompatActivity implements CapturingListener
     @Override
     public void onHeadMovementDone(int yaw, int pitch) {
         Log.i(TAG, String.format("Head movement (%d, %d) done" , yaw, pitch));
+        mImageAnnotation.setYaw(yaw);
+        mImageAnnotation.setPitch(pitch);
         captureTime_ms = System.currentTimeMillis();
-        pictureService.capture();
-        final Handler handler = new Handler();
-        handler.postDelayed(() -> {
-            if(System.currentTimeMillis() - captureTime_ms > 2000){
-                Log.e(TAG, "Needed to restart capturing after time limit reached!");
-                pictureService.capture();
-            }
-        }, 2000);
+        capturingService.capture();
+//        final Handler handler = new Handler();
+//        handler.postDelayed(() -> {
+//            if(System.currentTimeMillis() - captureTime_ms > 2000){
+//                Log.e(TAG, "Needed to restart capturing after time limit reached!");
+//                capturingService.capture();
+//            }
+//        }, 2000);
     }
 
     @Override
@@ -204,7 +216,7 @@ public class MainActivity extends AppCompatActivity implements CapturingListener
     @Override
     protected void onStop() {
         mHead.unbindService();
-        pictureService.endCapturing();
+        capturingService.endCapturing();
         super.onStop();
         finish();
 
@@ -229,7 +241,7 @@ public class MainActivity extends AppCompatActivity implements CapturingListener
     @Override
     protected void onDestroy() {
         mHead.unbindService();
-        pictureService.endCapturing();
+        capturingService.endCapturing();
         super.onDestroy();
     }
 

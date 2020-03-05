@@ -67,15 +67,12 @@ public class ImageAnnotation {
 
     public String encodeFilename(){
         transformToGlobalCoordinates();
-        if(timeTaken == -1 || yaw == -1 || label == null){
-            String errorMsg = "Cannot save AnnotatedImage. Not fully initialised: " + this;
-            Log.e(TAG, errorMsg);
-            throw new IllegalStateException(errorMsg);
+        String timeFormatted = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Timestamp(timeTaken));
+        if(label == null){
+            label = "none";
         }
-        else {
-            String timeFormatted = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Timestamp(timeTaken));
-            return String.format("%s_%s_%d_%d_%d_%d.jpg", timeFormatted, label, x, y, yaw, pitch);
-        }
+        return String.format("%s_%s_%d_%d_%d_%d.jpg", timeFormatted, label, x, y, yaw, pitch);
+
     }
 
     @NonNull
@@ -117,6 +114,26 @@ public class ImageAnnotation {
 
     public void setTimeTaken(long timeTaken) {
         this.timeTaken = timeTaken;
+    }
+
+    public void setX(int x) {
+        this.x = x;
+    }
+
+    public void setY(int y) {
+        this.y = y;
+    }
+
+    public void setYaw(int yaw) {
+        this.yaw = yaw;
+    }
+
+    public void setPitch(int pitch) {
+        this.pitch = pitch;
+    }
+
+    public void setLabel(String label) {
+        this.label = label;
     }
 }
 

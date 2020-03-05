@@ -76,8 +76,6 @@ public class CapturingService extends AbstractCapturingService {
 
     private String currentCameraId;
     private boolean cameraClosed;
-
-    private ImageAnnotation imageAnnotation;
     /**
      * stores a sorted map of (pictureUrlOnDisk, PictureData).
      */

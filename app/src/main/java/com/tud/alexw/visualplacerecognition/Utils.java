@@ -16,6 +16,13 @@ public class Utils {
 
     public static String TAG = "Utils";
 
+    public static void logMemory(){
+        final Runtime runtime = Runtime.getRuntime();
+        final long used_heap_memory_mb = (runtime.totalMemory() - runtime.freeMemory()) / 1048576L;
+        final long max_heap_memory_mb = runtime.maxMemory() / 1048576L;
+        final long available_heap_memory_mb = max_heap_memory_mb - used_heap_memory_mb;
+        Log.i(TAG, String.format("%d MB of %d MB of heap memory allocated. %d MB available.", used_heap_memory_mb, max_heap_memory_mb, available_heap_memory_mb));
+    }
 
     public static boolean isStorageStructureCreated(Context context) throws IOException {
         // Get the directory for the app's private pictures directory.
