@@ -187,11 +187,11 @@ public class Config {
 
     public static Config getConfigLoomo(Context context) throws IOException {
         int projectedVectorLength = 256;
-        return new Config(
+        Config conf = new Config(
                 context,
-                false,
-                "captureUni_test_mAP",
-                "deploy/testsets/test/",
+                true,
+                "test_human_pca265",
+                "deploy/testsets/test_human/",
                 false,
                 816, //960x540 or 640x480
                 612,
@@ -211,17 +211,27 @@ public class Config {
                 projectedVectorLength,
                 3831,
                 true,
-                10,
+                100,
                 1
         );
+
+        if(conf.getnQueriesForResult() == 1){
+            conf.setTestName(conf.getTestName() + "_mAP");
+        }
+
+        return conf;
     }
 
     public int generateHashCode(){
         return toString().hashCode();
     }
 
+    public String getBaseDirName(){
+        return testName + "_" + generateHashCode() + "/";
+    }
+
     public String getBaseFilename(){
-        return testName + "_" + generateHashCode() + "/" + testName + "_" + generateHashCode();
+        return getBaseDirName() + testName + "_" + generateHashCode();
     }
 
     public int getWidth() {
@@ -310,6 +320,10 @@ public class Config {
 
     public String getTestName() {
         return testName;
+    }
+
+    public void setTestName(String testName) {
+        this.testName = testName;
     }
 
     public File getTestDatasetDir() {

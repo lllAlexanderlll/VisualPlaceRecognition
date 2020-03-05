@@ -42,7 +42,7 @@ public class ImageAnnotation {
             }
             String label = labelBuilder.toString();
             label = label.substring(0, label.length() - 1);
-            Log.i(TAG, label);
+//            Log.i(TAG, label);
             int x = Integer.parseInt(annotations[annotations.length - 4]);
             int y = Integer.parseInt(annotations[annotations.length - 3]);
             int yaw = Integer.parseInt(annotations[annotations.length - 2]);

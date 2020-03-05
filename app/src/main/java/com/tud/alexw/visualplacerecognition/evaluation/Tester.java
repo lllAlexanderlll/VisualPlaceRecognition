@@ -146,6 +146,15 @@ public class Tester extends AsyncTask<Void, Void, String>{
     protected void onPreExecute() {
         super.onPreExecute();
         Utils.addText(mTextView, "Performing tests...");
+
+
+        File dir = new File(mContext.getExternalFilesDir(null), mConfig.getBaseDirName());
+        if(!dir.exists()){
+            if(!dir.mkdir());
+            {
+                Log.e(TAG, "Couldn't create test base dir");
+            }
+        }
         // dump config
         if(!saveAsFile(mConfig.getBaseFilename() + ".config", mConfig.toString())){
             this.cancel(true);

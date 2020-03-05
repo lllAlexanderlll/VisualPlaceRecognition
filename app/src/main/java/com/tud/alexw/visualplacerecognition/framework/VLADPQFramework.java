@@ -129,7 +129,7 @@ public class VLADPQFramework {
             for (MajorityCount majorityCount : mResult.getMajorityCounts()) {
                 mStringBuilderResult.append(majorityCount.label).append(": ").append(majorityCount.count).append("\n");
             }
-            mStringBuilderResult.append("Result: " + mResult.getResultLabel()).append(" ").append(mResult.getConfidence()).append("\n");
+            mStringBuilderResult.append(String.format("I'm in %s\n to %2.2f %%\n", mResult.getResultLabel(), mResult.getConfidence()*100));
             mResultCounter++;
         }
     }
