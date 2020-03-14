@@ -106,12 +106,12 @@ public class Config {
             throw new IOException("Codebook required, but does not exist! \n" + codebookFiles.get(0));
         }
 
-        baseTestDir = new File(context.getExternalFilesDir(null), getBaseFilename());
-        if(!baseTestDir.exists()){
-            if(!baseTestDir.mkdirs()){
-                throw new IOException("Couldn't create base dir! \n" + baseTestDir.getAbsolutePath());
-            }
-        }
+//        baseTestDir = new File(context.getExternalFilesDir(null), getBaseFilename());
+//        if(!baseTestDir.exists()){
+//            if(!baseTestDir.mkdirs()){
+//                throw new IOException("Couldn't create base dir! \n" + baseTestDir.getAbsolutePath());
+//            }
+//        }
 
     }
 
@@ -186,27 +186,27 @@ public class Config {
     }
 
     public static Config getConfigLoomo(Context context) throws IOException {
-        int projectedVectorLength = 8192;
+        int projectedVectorLength = 256;
         Config conf = new Config(
                 context,
                 true,
-                "test_nCodebooks_1_no_pca",
-                "deploy/testset1_2/",
+                "miniTest_nCodebooks_4_pca_256w_mAP_nNN_4",
+                "deploy/testsets/miniTest",
                 false,
                 816, //960x540 or 640x480
                 612,
                 new String[]{
-                        "deploy/codebooks/codebook_features_split_0_dim_64_centroids_128.csv"
-//                        "deploy/codebooks/codebook_features_split_1_dim_64_centroids_128.csv",
-//                        "deploy/codebooks/codebook_features_split_2_dim_64_centroids_128.csv",
-//                        "deploy/codebooks/codebook_features_split_3_dim_64_centroids_128.csv"
+                        "deploy/codebooks/codebook_features_split_0_dim_64_centroids_128.csv",
+                        "deploy/codebooks/codebook_features_split_1_dim_64_centroids_128.csv",
+                        "deploy/codebooks/codebook_features_split_2_dim_64_centroids_128.csv",
+                        "deploy/codebooks/codebook_features_split_3_dim_64_centroids_128.csv"
                 },
-                new int[]{128},
-                false,
-                "deploy/linearIndexes/fourCodebooks/pca_32768_to_128.txt",
+                new int[]{128,128,128,128},
+                true,
+                "deploy/pca/pca_32768_to_256.txt",
                 projectedVectorLength,
-                false,
-                "deploy/linearIndexes/singleCodebook/BDB_499392_surf_8192",
+                true,
+                "deploy/linearIndexes/codebook4/BDB_499392_surf_32768to256w",
                 "",
                 "",
                 8,
@@ -214,7 +214,7 @@ public class Config {
                 projectedVectorLength,
                 3831,
                 true,
-                30,
+                4,
                 1
         );
 

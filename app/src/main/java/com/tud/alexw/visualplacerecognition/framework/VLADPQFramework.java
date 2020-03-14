@@ -40,7 +40,7 @@ public class VLADPQFramework {
         mResult = new Result(mConfig.getnQueriesForResult());
         mStringBuilderResult = new StringBuilder();
         mStringBuilderStatus = new StringBuilder();
-        mStringBuilderAnnotationCSV = new StringBuilder("queryNumb,resultCount,rank,label,x,y,yaw,pitch,distance\n");
+        mStringBuilderAnnotationCSV = new StringBuilder("queryNumb,resultCount,rank,label,x,y,yaw,pitch,distance,path\n");
     }
 
     public void setup() throws Exception {
@@ -174,7 +174,8 @@ public class VLADPQFramework {
                     .append(imageAnnotation.y).append(",")
                     .append(imageAnnotation.yaw).append(",")
                     .append(imageAnnotation.pitch).append(",")
-                    .append(answer.getDistances()[rank]).append("\n");
+                    .append(answer.getDistances()[rank]).append(",")
+                    .append(answer.getIds()[rank]).append("\n");
             rank++;
         }
     }

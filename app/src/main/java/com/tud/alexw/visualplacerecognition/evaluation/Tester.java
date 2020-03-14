@@ -58,7 +58,7 @@ public class Tester extends AsyncTask<Void, Void, String>{
         mContext = context;
         mConfig = mVLADPQFramework.mConfig;
         stringBuilderResultCSV = new StringBuilder("resultCount,resultLabel,confidence,meanX,meanY,meanYaw,meanPitch\n");
-        stringBuilderQueryCSV = new StringBuilder("queryNumb,inferenceTime,searchTime,trueLabel,trueX,trueY,trueYaw,truePitch\n");
+        stringBuilderQueryCSV = new StringBuilder("queryNumb,inferenceTime,searchTime,trueLabel,trueX,trueY,trueYaw,truePitch,path\n");
     }
 
     private boolean test() throws Exception {
@@ -89,7 +89,8 @@ public class Tester extends AsyncTask<Void, Void, String>{
                                 .append(imageAnnotation.x).append(",")
                                 .append(imageAnnotation.y).append(",")
                                 .append(imageAnnotation.yaw).append(",")
-                                .append(imageAnnotation.pitch).append("\n");
+                                .append(imageAnnotation.pitch).append(",")
+                                .append(file.getParent() + "/" + file.getName()).append("\n");
                         count++;
                     } else {
                         Log.e(TAG, "Couldn't decode query filename!");
