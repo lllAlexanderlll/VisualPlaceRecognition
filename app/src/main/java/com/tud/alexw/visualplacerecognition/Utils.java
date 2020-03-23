@@ -16,6 +16,9 @@ public class Utils {
 
     public static String TAG = "Utils";
 
+    /**
+     * Log maximum, available and allocated heap memory in MB
+     */
     public static void logMemory(){
         final Runtime runtime = Runtime.getRuntime();
         final long used_heap_memory_mb = (runtime.totalMemory() - runtime.freeMemory()) / 1048576L;
@@ -24,6 +27,12 @@ public class Utils {
         Log.i(TAG, String.format("%d MB of %d MB of heap memory allocated. %d MB available.", used_heap_memory_mb, max_heap_memory_mb, available_heap_memory_mb));
     }
 
+    /**
+     * Checks if storage structure i.e. folders are created. If not creates it. Throws IO exception, if folder couldn't be created
+     * @param context Application context required for storage location
+     * @return if storage structure is created after calling this method
+     * @throws IOException
+     */
     public static boolean isStorageStructureCreated(Context context) throws IOException {
         // Get the directory for the app's private pictures directory.
         File file = context.getExternalFilesDir(null);
@@ -43,67 +52,96 @@ public class Utils {
         }
     }
 
+    /**
+     * Convert a linked list to an array
+     * @param linkedList the linked list
+     * @param <T> type of the elemts within the linked list
+     * @return
+     */
     public static <T> Object[] linkedListToArray(LinkedList<T> linkedList){
         Object[] array = linkedList.toArray();
         return array;
     }
 
+    /**
+     * Appends an HTML text in a new line to given textview
+     * @param textView the text view to write to
+     * @param msg the message (can be HTML)
+     */
     public static void addText(TextView textView, String msg){
         msg = msg.replace("\n", "<br/>");
         textView.append(Html.fromHtml("<br/>" + msg));
     }
 
+    /**
+     * Appends an HTML text in a new line to given textview in red
+     * @param textView the text view to write to
+     * @param msg the message (can be HTML)
+     */
     public static void addTextRed(TextView textView, String msg){
         msg = msg.replace("\n", "<br/>");
         textView.append(Html.fromHtml( "<br/>" + red(msg)));
     }
 
+    /**
+     * Appends an HTML text in a new line to given textview; all numbers within message are displayed blue
+     * @param textView the text view to write to
+     * @param msg the message (can be HTML)
+     */
     public static void addTextNumbersBlue(TextView textView, String msg){
         msg = msg.replace("\n", "<br/>");
         msg = msg.replaceAll("(\\d)", blue("$1"));
         textView.append(Html.fromHtml("<br/>" + msg));
     }
 
+    /**
+     * Add HTML font colour blue to message
+     * @param msg message
+     * @return coloured HTML message
+     */
     public static String blue(String msg){
         return "<font color=#42baff>" + msg +"</font>";
     }
 
+    /**
+     * Add HTML font colour red to message
+     * @param msg message
+     * @return coloured HTML message
+     */
     public static String red(String msg){
         return "<font color=#ff0000>" + msg +"</font>";
     }
 
+    /**
+     * Transforms degrees to radian
+     * @param degree degree value
+     * @return corresponding radian value
+     */
     public static float degreeToRad(int degree){
         return (float) (degree * Math.PI/180);
     }
 
+    /**
+     * Transforms radian to degree
+     * @param rad radian value
+     * @return corresponding degree value
+     */
     public static int radToDegree(float rad){
         return (int) (rad* 180/Math.PI);
     }
 
+    /**
+     * Compares two degrees in a soft way (5° deviation allowed). Soft comparison, since robot head measurements "wiggle" a little. High value of 5° set for fast head movement.
+     * @param deg1 degree value to compare
+     * @param deg2 degree value to compare
+     * @return whether the two values are close
+     */
     public static boolean isClose(int deg1, int deg2){
         boolean result = Math.abs(deg1 - deg2) < 5;
         if(!result){
             Log.v(TAG, String.format("%d° != %d°", deg1, deg2));
         }
         return result;
-    }
-
-    public static void moveHead(Head head, int yaw_deg, int pitch_deg){
-        if(yaw_deg > 144 || yaw_deg < -144 || pitch_deg < 0 || pitch_deg > 174){
-            Log.e(TAG, String.format("Yaw: %d not in [-144, 144] or pitch: %d not in [0, 174]", yaw_deg, pitch_deg));
-            return;
-        }
-
-        head.setHeadJointYaw(degreeToRad(yaw_deg));
-        head.setWorldPitch(degreeToRad(pitch_deg));
-        Log.i(TAG,String.format("Current motor pitch and yaw values: %f, %f", head.getHeadJointYaw().getAngle(), head.getWorldPitch().getAngle()));
-        Log.i(TAG,String.format("Set motor pitch and yaw values: %f, %f", degreeToRad(yaw_deg), degreeToRad(pitch_deg)));
-        while (
-            !(isClose(radToDegree(head.getHeadJointYaw().getAngle()), yaw_deg) &&
-            isClose(radToDegree(head.getWorldPitch().getAngle()), pitch_deg))
-        ) {
-            Log.i(TAG, String.format("Waiting for Head to turn from (%d, %d) to (%d, %d)", radToDegree(head.getHeadJointYaw().getAngle()), radToDegree(head.getWorldPitch().getAngle()), yaw_deg, pitch_deg));
-        }
     }
     
 }

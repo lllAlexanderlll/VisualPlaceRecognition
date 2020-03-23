@@ -157,7 +157,11 @@ public class MainActivity extends AppCompatActivity implements CapturingListener
 
     }
 
-
+    /**
+     * annotate image accroding to head position and take an image. If image not taken after some time try again.
+     * @param yaw yaw value in degree
+     * @param pitch pitch value in degree
+     */
     @Override
     public void onHeadMovementDone(int yaw, int pitch) {
         Log.i(TAG, String.format("Head movement (%d, %d) done" , yaw, pitch));
@@ -174,6 +178,9 @@ public class MainActivity extends AppCompatActivity implements CapturingListener
 //        }, 2000);
     }
 
+    /**
+     * Displays the picture taken, triggers next head movement and start image vectorisation and Nearest Neighbour Search
+     */
     @Override
     public void onCaptureDone(byte[] pictureData) {
         if (pictureData != null) {

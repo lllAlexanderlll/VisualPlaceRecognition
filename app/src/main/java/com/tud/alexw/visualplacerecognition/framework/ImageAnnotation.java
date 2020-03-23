@@ -8,12 +8,18 @@ import java.util.Arrays;
 
 import androidx.annotation.NonNull;
 
+/**
+ * stores image information as Bitmap object and corresponding annotation info. De- and encodes filenames for images.
+ */
 public class ImageAnnotation {
     public int x, y, yaw, pitch;
     public String label;
     private static String TAG = "Annotation";
     private long timeTaken;
 
+    /**
+     * Creates an  annotationImage with given annotations
+     */
     public ImageAnnotation(int x, int y, int yaw, int pitch, String label) {
         this.x = x;
         this.y = y;
@@ -23,6 +29,10 @@ public class ImageAnnotation {
         this.timeTaken = -1;
     }
 
+    /**
+     * Decodes a given annotated image filename into annotations of the calling object
+     * @param path filename or path to filename
+     */
     public static ImageAnnotation decodeFilename(String filename){
             String[] split = filename.split("\\.");
             if(split.length != 2){
@@ -42,7 +52,6 @@ public class ImageAnnotation {
             }
             String label = labelBuilder.toString();
             label = label.substring(0, label.length() - 1);
-//            Log.i(TAG, label);
             int x = Integer.parseInt(annotations[annotations.length - 4]);
             int y = Integer.parseInt(annotations[annotations.length - 3]);
             int yaw = Integer.parseInt(annotations[annotations.length - 2]);
@@ -50,6 +59,9 @@ public class ImageAnnotation {
             return new ImageAnnotation(x, y, yaw, pitch, label);
     }
 
+    /**
+     * Transforms local pitch and yaw coordinates relative to the robots head to global coordinates
+     */
     private void transformToGlobalCoordinates(){
         // convert local pitch and yaw to global measurements
 
@@ -65,6 +77,10 @@ public class ImageAnnotation {
         yaw %= 360;
     }
 
+    /**
+     * Encodes annotations into image filename
+     * @return the annotated image filename
+     */
     public String encodeFilename(){
         transformToGlobalCoordinates();
         String timeFormatted = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Timestamp(timeTaken));

@@ -27,5 +27,8 @@ public interface CapturingListener {
      */
     void onCaptureDone(byte[] pictureData);
 
+    /**
+     * a callback to report capturing failure
+     */
     void onCapturingFailed();
 }

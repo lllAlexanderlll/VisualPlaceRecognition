@@ -127,6 +127,9 @@ public class CapturingService extends AbstractCapturingService {
         }
     }
 
+    /**
+     * Opens the camera and reports to the stateCallback object
+     */
     private void openCamera() {
         Log.d(TAG, "opening camera " + currentCameraId);
         try {
@@ -142,41 +145,9 @@ public class CapturingService extends AbstractCapturingService {
         }
     }
 
-    private final CameraCaptureSession.CaptureCallback captureListener = new CameraCaptureSession.CaptureCallback() {
-        @Override
-        public void onCaptureCompleted(@NonNull CameraCaptureSession session, @NonNull CaptureRequest request,
-                                       @NonNull TotalCaptureResult result) {
-            super.onCaptureCompleted(session, request, result);
-        }
-
-        @Override
-        public void onCaptureFailed(@NonNull CameraCaptureSession session, @NonNull CaptureRequest request, @NonNull CaptureFailure failure) {
-            super.onCaptureFailed(session, request, failure);
-            Log.e(TAG, "Capture failed!");
-        }
-
-        @Override
-        public void onCaptureStarted(@NonNull CameraCaptureSession session, @NonNull CaptureRequest request, long timestamp, long frameNumber) {
-            super.onCaptureStarted(session, request, timestamp, frameNumber);
-            Log.i(TAG, "Capture started!");
-        }
-
-        @Override
-        public void onCaptureProgressed(@NonNull CameraCaptureSession session, @NonNull CaptureRequest request, @NonNull CaptureResult partialResult) {
-            super.onCaptureProgressed(session, request, partialResult);
-            Log.i(TAG, "Capture processed!");
-        }
-    };
-
-    private final ImageReader.OnImageAvailableListener onImageAvailableListener = (ImageReader imReader) -> {
-        final Image image = imReader.acquireLatestImage();
-        final ByteBuffer buffer = image.getPlanes()[0].getBuffer();
-        final byte[] bytes = new byte[buffer.capacity()];
-        buffer.get(bytes);
-        registerImage(bytes);
-        image.close();
-    };
-
+    /**
+     * Logging of camera state. Closes camera on error, close request or disconnection
+     */
     private final CameraDevice.StateCallback stateCallback = new CameraDevice.StateCallback() {
 
         @Override
@@ -213,7 +184,96 @@ public class CapturingService extends AbstractCapturingService {
         }
     };
 
+    /**
+     * Listens on image capturing, only logs status information
+     */
+    private final CameraCaptureSession.CaptureCallback captureListener = new CameraCaptureSession.CaptureCallback() {
+        @Override
+        public void onCaptureCompleted(@NonNull CameraCaptureSession session, @NonNull CaptureRequest request,
+                                       @NonNull TotalCaptureResult result) {
+            super.onCaptureCompleted(session, request, result);
+        }
 
+        @Override
+        public void onCaptureFailed(@NonNull CameraCaptureSession session, @NonNull CaptureRequest request, @NonNull CaptureFailure failure) {
+            super.onCaptureFailed(session, request, failure);
+            Log.e(TAG, "Capture failed!");
+        }
+
+        @Override
+        public void onCaptureStarted(@NonNull CameraCaptureSession session, @NonNull CaptureRequest request, long timestamp, long frameNumber) {
+            super.onCaptureStarted(session, request, timestamp, frameNumber);
+            Log.i(TAG, "Capture started!");
+        }
+
+        @Override
+        public void onCaptureProgressed(@NonNull CameraCaptureSession session, @NonNull CaptureRequest request, @NonNull CaptureResult partialResult) {
+            super.onCaptureProgressed(session, request, partialResult);
+            Log.i(TAG, "Capture processed!");
+        }
+    };
+
+    /**
+     * Gets byte array of captured image and registers the image (i.e. optional saving, onCaptureDone invocation)
+     */
+    private final ImageReader.OnImageAvailableListener onImageAvailableListener = (ImageReader imReader) -> {
+        final Image image = imReader.acquireLatestImage();
+        final ByteBuffer buffer = image.getPlanes()[0].getBuffer();
+        final byte[] bytes = new byte[buffer.capacity()];
+        buffer.get(bytes);
+        registerImage(bytes);
+        image.close();
+    };
+
+    /**
+     * registers image i.e. optionally saves image (controlled by doSaveImage) and reports calls listener back with image as byte arrays
+     * @param bytes
+     */
+    private void registerImage(final byte[] bytes) {
+        imageAnnotation.setTimeTaken(System.currentTimeMillis());
+
+
+        String path = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES)
+                + File.separator
+                + "testset"
+                + File.separator
+                + imageAnnotation.getLabel()
+                + File.separator;
+
+        File directory = new File(path);
+        if (!directory.exists() || !doSaveImage) {
+            directory.mkdirs();
+        }
+        File file = new File(directory, imageAnnotation.encodeFilename());
+
+        if(doSaveImage) {
+            try (final OutputStream outputStream = new FileOutputStream(file)) {
+                outputStream.write(bytes);
+                outputStream.flush();
+                ((FileOutputStream) outputStream).getFD().sync();
+                outputStream.close();
+
+                MediaScannerConnection.scanFile(context,
+                        new String[]{file.toString()}, null,
+                        new MediaScannerConnection.OnScanCompletedListener() {
+                            public void onScanCompleted(String path, Uri uri) {
+                                Log.i("ExternalStorage", "Scanned " + path + ":");
+                                Log.i("ExternalStorage", "-> uri=" + uri);
+                            }
+                        });
+                Log.i(TAG, "Saved: " + file.getAbsolutePath());
+            } catch (final IOException e) {
+                Log.e(TAG, "Exception occurred while saving picture to external storage ", e);
+            }
+        }
+        image = bytes;
+        capturingListener.onCaptureDone(image);
+    }
+
+    /**
+     * Returns the range of the Automatic Exposure of the camera
+     * @return the range of the Automatic Exposure of the camera
+     */
     private Range<Integer> getRange() {
         try {
             CameraCharacteristics chars = manager.getCameraCharacteristics(cameraDevice.getId());
@@ -238,6 +298,9 @@ public class CapturingService extends AbstractCapturingService {
         }
     }
 
+    /**
+     * Triggers image capturing after a delay of 500 ms, to prevent too dark images. Needs to be called after startCapturing() i.e. after getting a listener to report to
+     */
     @Override
     public void capture(){
         if(!cameraClosed) {
@@ -249,6 +312,9 @@ public class CapturingService extends AbstractCapturingService {
         }
     }
 
+    /**
+     * Configures the camera exposure mode and exposure time (fixed). Notes JPEG orientation of image in case robot looks backwards. Takes a single image.
+     */
     private void takePicture() {
         try {
             if (null == cameraDevice) {
@@ -304,48 +370,9 @@ public class CapturingService extends AbstractCapturingService {
         }
     }
 
-
-    private void registerImage(final byte[] bytes) {
-        imageAnnotation.setTimeTaken(System.currentTimeMillis());
-
-
-        String path = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES)
-                + File.separator
-                + "testset"
-                + File.separator
-                + imageAnnotation.getLabel()
-                + File.separator;
-
-        File directory = new File(path);
-        if (!directory.exists() || !doSaveImage) {
-            directory.mkdirs();
-        }
-        File file = new File(directory, imageAnnotation.encodeFilename());
-
-        if(doSaveImage) {
-            try (final OutputStream outputStream = new FileOutputStream(file)) {
-                outputStream.write(bytes);
-                outputStream.flush();
-                ((FileOutputStream) outputStream).getFD().sync();
-                outputStream.close();
-
-                MediaScannerConnection.scanFile(context,
-                        new String[]{file.toString()}, null,
-                        new MediaScannerConnection.OnScanCompletedListener() {
-                            public void onScanCompleted(String path, Uri uri) {
-                                Log.i("ExternalStorage", "Scanned " + path + ":");
-                                Log.i("ExternalStorage", "-> uri=" + uri);
-                            }
-                        });
-                Log.i(TAG, "Saved: " + file.getAbsolutePath());
-            } catch (final IOException e) {
-                Log.e(TAG, "Exception occurred while saving picture to external storage ", e);
-            }
-        }
-        image = bytes;
-        capturingListener.onCaptureDone(image);
-    }
-
+    /**
+     * closes the camera if not already
+     */
     @Override
     public void endCapturing(){
         if(!cameraClosed){
@@ -353,7 +380,9 @@ public class CapturingService extends AbstractCapturingService {
         }
     }
 
-
+    /**
+     * Closes the camera and the image reader
+     */
     private void closeCamera() {
         Log.d(TAG, "closing camera " + cameraDevice.getId());
         if (null != cameraDevice && !cameraClosed) {
@@ -365,24 +394,5 @@ public class CapturingService extends AbstractCapturingService {
             imageReader = null;
         }
     }
-
-//    @Override
-//    public void startBackgroundThread() {
-//        mBackgroundThread = new HandlerThread("Camera Background");
-//        mBackgroundThread.start();
-//        mBackgroundHandler = new Handler(mBackgroundThread.getLooper());
-//    }
-//
-//    @Override
-//    public void stopBackgroundThread() {
-//        mBackgroundThread.quitSafely();
-//        try {
-//            mBackgroundThread.join();
-//            mBackgroundThread = null;
-//            mBackgroundHandler = null;
-//        } catch (InterruptedException e) {
-//            e.printStackTrace();
-//        }
-//    }
 
 }

@@ -186,13 +186,13 @@ public class Config {
     }
 
     public static Config getConfigLoomo(Context context) throws IOException {
-        int projectedVectorLength = 256;
+        int projectedVectorLength = 48;
         Config conf = new Config(
                 context,
                 true,
-                "miniTest_nCodebooks_4_pca_256w_mAP_nNN_4",
-                "deploy/testsets/miniTest",
-                false,
+                "deployTest_nCodebooks_4_pca_48w_m8_k10_nNN_5_majorityCount_4",
+                "deploy/testsets/deploy_testset",
+                true,
                 816, //960x540 or 640x480
                 612,
                 new String[]{
@@ -203,19 +203,19 @@ public class Config {
                 },
                 new int[]{128,128,128,128},
                 true,
-                "deploy/pca/pca_32768_to_256.txt",
+                "deploy/pca/pca_32768_to_48.txt",
                 projectedVectorLength,
                 true,
-                "deploy/linearIndexes/codebook4/BDB_499392_surf_32768to256w",
                 "",
-                "",
+                "deploy/pqIndexes/codebook4/BDB_499392_surf_32768to48w_m8_k10",
+                "deploy/pqIndexes/codebook4/BDB_499392_surf_32768to48w_m8_k10/pq_48_8x3_3831.csv",
                 8,
                 10,
                 projectedVectorLength,
                 3831,
                 true,
-                4,
-                1
+                5,
+                4
         );
 
         if(conf.getnQueriesForResult() == 1){
