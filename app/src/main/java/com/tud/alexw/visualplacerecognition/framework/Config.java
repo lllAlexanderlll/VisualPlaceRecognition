@@ -10,6 +10,9 @@ import java.util.List;
 
 import androidx.annotation.NonNull;
 
+/**
+ * Large data object which holds file paths and parameterisation for VLAD, PQ, Linear index, Codebooks, testing process (test set path, test Name, ...). Generates a hash to identify a test ran under the same configuration.
+ */
 public class Config {
 
     private static final String TAG = "Config";
@@ -47,7 +50,34 @@ public class Config {
     private File baseTestDir;
     private StringBuilder stringBuilder;
 
-
+    /**
+     * Constructor with all information about VLAD, indexes, PCA, testing, image input
+     * @param context the application context
+     * @param doRunTests whether to conduct tests
+     * @param testName the name of the test, is appended "_mAP", if nQueries for result equals 1
+     * @param testDatasetPath path to the test set, which annotated images for each place in a own folder
+     * @param doPQ whether the index is a PQ index
+     * @param width image width to scale input images to
+     * @param height image height to scale input images to
+     * @param codebookFilePaths array of paths to the codebook files
+     * @param codebookSizes array of codebook sizes for paths given in codebookFilePaths
+     * @param doPCA whether to conduct PCA
+     * @param pcaFilePath path to the pca file
+     * @param projectionLength projection length after PCA
+     * @param doWhitening whether the projected vectors are whitened after PCA
+     * @param linearIndexDirPath path to the linear index (may be empty Stirng if doPQ)
+     * @param pqIndexDirPath path to the pq index (may be empty Stirng if not doPQ)
+     * @param pqCodebookFilePath path to the PQ codebook (may be empty Stirng if not doPQ)
+     * @param nSubVectors number of subvectors to split a VLAD vector into by PQ
+     * @param nProductCentroids number of centroids for each subvector
+     * @param vectorLength vector length after VLAD and PCA
+     * @param indexSize maximum number of index entries to load (usually set to size of the index)
+     * @param readOnly if the index is read only
+     * @param nNearestNeighbors number of nearest neighbours to retrieve for the nearest neighbour search
+     * @param nQueriesForResult number of images to use for issuing a single place recognition belief (i.e. controls majority count voting). must be positive and not zero
+     * @throws IOException thrown if a file path given does not exist/ could not be read
+     * @throws IllegalArgumentException thrown if given parameters are incorrect
+     */
     public Config(
             Context context,
             boolean doRunTests,
@@ -115,6 +145,10 @@ public class Config {
 
     }
 
+    /**
+     * returns config in windows ini format
+     * @return config string in windows ini format
+     */
     @NonNull
     @Override
     public String toString() {
@@ -151,40 +185,12 @@ public class Config {
             .toString();
     }
 
-    public static Config getConfigAndroid(Context context) throws IOException {
-        int projectedVectorLength = 96;
-        return new Config(
-                context,
-                true,
-                "testDataset_mAP",
-                "testDataset",
-                false,
-                960, //960x540 or 640x480
-                540,
-                new String[]{
-                        "codebooks/codebook_split_0.csv",
-                        "codebooks/codebook_split_1.csv",
-                        "codebooks/codebook_split_2.csv",
-                        "codebooks/codebook_split_3.csv",
-                },
-                new int[]{128,128,128,128},
-                true,
-                "pca96/pca_32768_to_96.txt",
-                projectedVectorLength,
-                true,
-                "linearIndex4Codebooks128WithPCAw96/BDB_518400_surf_32768to96w/", //"linearIndex4Codebooks128WithPCA96/BDB_518400_surf_32768to96/", //linearIndex4Codebooks128WithPCAw96/BDB_518400_surf_32768to96w/
-                "pqIndex4Codebooks128WithPCAw96/", //"pqIndex4Codebooks128WithPCA96/", //pqIndex4Codebooks128WithPCAw96/
-                "pqIndex4Codebooks128WithPCAw96/pq_96_8x3_1244.csv", //"pqIndex4Codebooks128WithPCA96/pq_96_8x3_1244.csv", //pqIndex4Codebooks128WithPCAw96/pq_96_8x3_1244.csv
-                8,
-                10,
-                projectedVectorLength,
-                1244,
-                true,
-                10,
-                1
-        );
-    }
-
+    /**
+     * convinient method used to load a config and not pollute main activity with parameterisation.
+     * @param context Application context
+     * @return config object
+     * @throws IOException if a file specified in config couldn't be found or read
+     */
     public static Config getConfigLoomo(Context context) throws IOException {
         int projectedVectorLength = 48;
         Config conf = new Config(
@@ -225,14 +231,26 @@ public class Config {
         return conf;
     }
 
+    /**
+     * Caluclate the hash code of the config object by hashing the config string (windows ini)
+     * @return
+     */
     public int generateHashCode(){
         return toString().hashCode();
     }
 
+    /**
+     * Returns root test folder path with hash reference
+     * @return root test folder path with hash reference
+     */
     public String getBaseDirName(){
         return testName + "_" + generateHashCode() + "/";
     }
 
+    /**
+     * Returns basic test filename path within root test folder without extension but with hash reference
+     * @return
+     */
     public String getBaseFilename(){
         return getBaseDirName() + testName + "_" + generateHashCode();
     }

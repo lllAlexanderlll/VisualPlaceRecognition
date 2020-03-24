@@ -69,6 +69,7 @@ public class MoveHead {
     /**
      * iterates to next head pose, waits until head moved into this position and informs listener with onHeadMovementDone
      * if no next head move position in list reset head pose and look upwards to ease user interaction and informs listener with onAllHeadMovementsDone
+     * Automatically resets movement poses list pointer if all head movements done
      */
     public void next(){
         if(counter < yaws.size()){

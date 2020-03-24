@@ -21,6 +21,10 @@ import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 
+/**
+ * Class for performing tests with a test set. Creates a CSV file with test results, which is then post-processed (e.g. visualisation) by python scripts.
+ * Is asynchronous to avoid UI blocking
+ */
 public class Tester extends AsyncTask<Void, Void, String>{
 
     private String TAG = "Tester";
@@ -52,6 +56,12 @@ public class Tester extends AsyncTask<Void, Void, String>{
     private StringBuilder stringBuilderResultCSV;
     private StringBuilder stringBuilderQueryCSV;
 
+    /**
+     * Constructor with reference to VLADPQFramework which allows access to the configuration, which paramterises the test (e.g. test set, number of images for a result, ...) and the index and pca parameteres
+     * @param context application context
+     * @param vladpqFramework reference to VLADPQFramework
+     * @param textView reference to text view to write to
+     */
     public Tester(Context context,VLADPQFramework vladpqFramework, TextView textView){
         mTextView = textView;
         mVLADPQFramework = vladpqFramework;
@@ -61,6 +71,11 @@ public class Tester extends AsyncTask<Void, Void, String>{
         stringBuilderQueryCSV = new StringBuilder("queryNumb,inferenceTime,searchTime,trueLabel,trueX,trueY,trueYaw,truePitch,path\n");
     }
 
+    /**
+     * Starts the test with the test set given in the config. Fills buffer with csv file information.
+     * @return
+     * @throws Exception
+     */
     private boolean test() throws Exception {
         Bitmap bitmap;
         ImageAnnotation imageAnnotation;
@@ -115,6 +130,12 @@ public class Tester extends AsyncTask<Void, Void, String>{
         return true;
     }
 
+    /**
+     * Saves a file
+     * @param filename filename for file
+     * @param content content of file
+     * @return success of saving
+     */
     private synchronized boolean saveAsFile(String filename, String content){
         File file = new File(mContext.getExternalFilesDir(null), filename);
         try (FileOutputStream stream = new FileOutputStream(file)) {
@@ -130,6 +151,11 @@ public class Tester extends AsyncTask<Void, Void, String>{
     }
 
 
+    /**
+     * Asynchronously executes the test
+     * @param voids
+     * @return
+     */
     @Override
     protected String doInBackground(Void... voids) {
         try {
@@ -143,6 +169,9 @@ public class Tester extends AsyncTask<Void, Void, String>{
         return "Ok";
     }
 
+    /**
+     * Before execution dump the config with its hash as identifier for this test under this configuration
+     */
     @Override
     protected void onPreExecute() {
         super.onPreExecute();
@@ -162,6 +191,10 @@ public class Tester extends AsyncTask<Void, Void, String>{
         }
     }
 
+    /**
+     * Saves the csv file
+     * @param string error message if execution was not successful, otherwise ignore
+     */
     @Override
     protected void onPostExecute(String string) {
         super.onPostExecute(string);

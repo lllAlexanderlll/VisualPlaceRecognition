@@ -31,7 +31,7 @@ public class ImageAnnotation {
 
     /**
      * Decodes a given annotated image filename into annotations of the calling object
-     * @param path filename or path to filename
+     * @param filename filename or path to filename
      */
     public static ImageAnnotation decodeFilename(String filename){
             String[] split = filename.split("\\.");
@@ -91,6 +91,10 @@ public class ImageAnnotation {
 
     }
 
+    /**
+     * Returns line separated string of the annotated image
+     * @return line separated string of the annotated image
+     */
     @NonNull
     @Override
     public String toString() {
@@ -128,6 +132,10 @@ public class ImageAnnotation {
         return timeTaken;
     }
 
+    /**
+     * Sets the time taken
+     * @param timeTaken seconds since epoch
+     */
     public void setTimeTaken(long timeTaken) {
         this.timeTaken = timeTaken;
     }

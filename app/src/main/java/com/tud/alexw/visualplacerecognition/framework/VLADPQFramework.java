@@ -13,6 +13,9 @@ import gr.iti.mklab.visual.extraction.AbstractFeatureExtractor;
 import gr.iti.mklab.visual.extraction.SURFExtractor;
 import gr.iti.mklab.visual.utilities.Answer;
 
+/**
+ * Class providing the setup of a VLAD PQ image retrieval search system. Allows inference i.e. image vectorisation and NNS within an index (Linear or PQ)
+ */
 public class VLADPQFramework {
 
     public static String TAG = "VLADPQFramework";
@@ -34,6 +37,10 @@ public class VLADPQFramework {
     private StringBuilder mStringBuilderAnnotationCSV;
     private int mResultCounter = 0;
 
+    /**
+     * Constructor. Setup instruction/ parameterisation in config. Actual reading of config outsourced to setup method
+     * @param config the config object
+     */
     public VLADPQFramework(Config config) {
         mIsSetup = false;
         mConfig = config;
@@ -43,6 +50,10 @@ public class VLADPQFramework {
         mStringBuilderAnnotationCSV = new StringBuilder("queryNumb,resultCount,rank,label,x,y,yaw,pitch,distance,path\n");
     }
 
+    /**
+     * Reads config and instantiates extractor, codebooks, VLAD, PCA. To be called after construction
+     * @throws Exception throws IO Exception if PCA file or Codebook files not valid
+     */
     public void setup() throws Exception {
         surfExtractor = new SURFExtractor();
         codebooks = AbstractFeatureAggregator.readQuantizers(mConfig.getCodebookFiles(), mConfig.getCodebookSizes(), AbstractFeatureExtractor.SURFLength);
@@ -56,12 +67,19 @@ public class VLADPQFramework {
         mIsSetup = true;
     }
 
+    /**
+     * Checks if setup was called before
+     */
     private void checkSetup(){
         if(!mIsSetup){
             throw new IllegalStateException("VLADPQFramework must be setup first!");
         }
     }
 
+    /**
+     * Loads a PQ index according to config in memory
+     * @throws Exception PQ codebook/ index file not found
+     */
     public void loadPQIndex() throws Exception {
         checkSetup();
 
@@ -72,12 +90,22 @@ public class VLADPQFramework {
         Log.i(TAG, ((PQ) index).toString());
     }
 
+    /**
+     * Loads a Linear index according to config in memory
+     * @throws Exception Index file not found or other
+     */
     public void loadLinearIndex() throws Exception {
         checkSetup();
         index = new Linear(mConfig.getVectorLength(), mConfig.getIndexSize(), mConfig.isReadOnly(), mConfig.getLinearIndexDir(), true, true, 0, cacheSize_mb);
         Log.i(TAG, "Linear index loaded");
     }
 
+    /**
+     * Conduct inference (i.e. vectorise image) for a given image
+     * @param bitmap image as Bitmap object
+     * @return the vector describing the image
+     * @throws Exception
+     */
     private double[] inference(Bitmap bitmap) throws Exception {
         long start = System.currentTimeMillis();
         checkSetup();
@@ -111,6 +139,12 @@ public class VLADPQFramework {
         return vladVector;
     }
 
+    /**
+     * Conduct nearest neighbour search for given vladVector
+     * @param vladVector vlad vector representing an image
+     * @return Answer object with NNS results
+     * @throws Exception
+     */
     private Answer search(double[] vladVector) throws Exception {
         checkSetup();
         Answer answer = index.computeNearestNeighbors(mConfig.getnNearestNeighbors(), vladVector);
@@ -118,6 +152,12 @@ public class VLADPQFramework {
         return answer;
     }
 
+    /**
+     * Conducts inference and then NNS. Also reports place recognition result, if all query images for one place recognition results are processed
+     * Protocols answers in CSV format
+     * @param bitmap a image as Bitmap object for inference and search
+     * @throws Exception
+     */
     public void inferenceAndNNS(Bitmap bitmap) throws Exception{
         double[] vector = inference(bitmap);
         Answer answer = search(vector);
@@ -150,18 +190,30 @@ public class VLADPQFramework {
         return mResultCounter;
     }
 
+    /**
+     * gets result message and empties corresponding string builder
+     * @return result message
+     */
     public String popResultString(){
         String temp = mStringBuilderResult.toString();
         mStringBuilderResult.setLength(0);
         return temp;
     }
 
+    /**
+     * gets status message and empties corresponding string builder
+     * @return status message
+     */
     public String popStatusString(){
         String temp = mStringBuilderStatus.toString();
         mStringBuilderStatus.setLength(0);
         return temp;
     }
 
+    /**
+     * Add an answer in CSV format to corresponding string builder
+     * @param answer answer in CSV format
+     */
     private void addToAnnotationsCSV(Answer answer){
         int rank = 0;
         for(ImageAnnotation imageAnnotation : answer.getImageAnnotations()){

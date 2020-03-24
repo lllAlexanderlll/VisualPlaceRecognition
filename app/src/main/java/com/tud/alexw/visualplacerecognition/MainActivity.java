@@ -7,14 +7,12 @@ import androidx.core.content.ContextCompat;
 
 import android.Manifest;
 import android.annotation.TargetApi;
-import android.app.ActivityManager;
 import android.content.pm.PackageManager;
 import android.content.res.Configuration;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.Build;
 import android.os.Bundle;
-import android.os.Handler;
 import android.text.method.ScrollingMovementMethod;
 import android.util.Log;
 import android.view.View;
@@ -38,16 +36,16 @@ import com.tud.alexw.visualplacerecognition.framework.ImageAnnotation;
 import java.util.ArrayList;
 import java.util.List;
 
-import static android.content.pm.ApplicationInfo.FLAG_LARGE_HEAP;
-
+/**
+ * Main activity. Setups the GUI, head movements and triggers VLADPQFramework setup. User interacts by clicking a button to trigger place recognition.
+ * Head movement and capturing alternates by waiting for each others callbacks
+ */
 public class MainActivity extends AppCompatActivity implements CapturingListener, MoveHeadListener, ActivityCompat.OnRequestPermissionsResultCallback {
 
     public static String TAG = "MainActivity";
 
     private Head mHead;
     VLADPQFramework mVLADPQFramework;
-
-    private Bitmap mBitmap;
 
     private Config mConfig;
     //The capture service
@@ -69,12 +67,16 @@ public class MainActivity extends AppCompatActivity implements CapturingListener
     private static final int MY_PERMISSIONS_REQUEST_ACCESS_CODE = 1;
 
 
-
+    /**
+     * Setup GUI, Head object of robot vision SDK, CapturingService, VLADPQFramework and button to allow user command to conduct place recognition now
+     * @param savedInstanceState saved app instance
+     */
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        // show memory status before index loaded
         Utils.logMemory();
 
         mTestTextView = (TextView) findViewById(R.id.test);
@@ -93,15 +95,30 @@ public class MainActivity extends AppCompatActivity implements CapturingListener
         mHead = Head.getInstance();
         mHead.bindService(getApplicationContext(), mServiceBindListenerHead);
 
+        // setup camera for capturing and saving
         capturingService = CapturingService.getInstance(this);
         capturingService.setDoSaveImage(false);
         capturingService.startCapturing(this, mImageAnnotation);
-//        int[] pitchValues = {   0,   0,   0,   0,  0,  0,  0, 35,  35,  35,  35, 35, 35, 35, 145, 145, 145, 145, 145, 174, 174, 174, 174, 174};
-//        int[] yawValues = {     0, -30, -60, -90, 90, 60, 30,  0, -30, -60, -90, 90, 60, 30,   0, -30, -60,  60,  30,   0, -30, -60,  60,  30};
-        int[] pitchValues = {   0, 35, 145, 174};
-        int[] yawValues = {     0,  0,   0,   0};
-//            int[] pitchValues = {   0, 45};
-//            int[] yawValues = {     0, 0};
+
+        //setup robot head for movement. nQueriesForResult set by pitchValues and yawValues length (must be same length)
+        // it DOES NOT change nQueriesForResult in config, but array lengths must match it! Config controls when a place belief is issued and not arrays of movement poses!
+
+        // 24 capturing poses
+        // int[] pitchValues = {   0,   0,   0,   0,  0,  0,  0, 35,  35,  35,  35, 35, 35, 35, 145, 145, 145, 145, 145, 174, 174, 174, 174, 174};
+        // int[] yawValues = {     0, -30, -60, -90, 90, 60, 30,  0, -30, -60, -90, 90, 60, 30,   0, -30, -60,  60,  30,   0, -30, -60,  60,  30};
+
+        // front and back capturing poses
+//        int[] pitchValues = {   0, 35, 145, 174};
+//        int[] yawValues = {     0,  0,   0,   0};
+
+        // front capturing poses
+        // int[] pitchValues = {   0, 45};
+        // int[] yawValues = {     0, 0};
+
+        // front and left capturing poses
+        int[] pitchValues = {   0, 35, 0, 35};
+        int[] yawValues = {     0,  0,   90,   90};
+
         moveHead = new MoveHead(mHead, this, yawValues, pitchValues);
 
         try{
@@ -134,9 +151,9 @@ public class MainActivity extends AppCompatActivity implements CapturingListener
         }
 
 
-        // Load index
+        // Load index and asynchronously setup VLADPQFramework
         Utils.addText(mStatusTextView, "Loading index...");
-        new AsyncFrameworkSetup(mVLADPQFramework, mStatusTextView, mConfig.isDoRunTests() ? null : mCaptureButton, mConfig.isDoRunTests(), getApplicationContext()).execute();
+        new AsyncFrameworkSetup(mVLADPQFramework, mStatusTextView, mConfig.isDoRunTests() ? null : mCaptureButton, getApplicationContext()).execute();
 
         // Check if evaluation is wanted
         if(mConfig.isDoRunTests()) {
@@ -147,6 +164,7 @@ public class MainActivity extends AppCompatActivity implements CapturingListener
             mCaptureButton.setVisibility(View.VISIBLE);
         }
 
+        // start place recognition is button is clicked by user (only possible if VLADPQFramework setup was successful)
         mCaptureButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -158,7 +176,7 @@ public class MainActivity extends AppCompatActivity implements CapturingListener
     }
 
     /**
-     * annotate image accroding to head position and take an image. If image not taken after some time try again.
+     * annotate image according to head position and take an image. Triggers to capture an image
      * @param yaw yaw value in degree
      * @param pitch pitch value in degree
      */
@@ -199,7 +217,9 @@ public class MainActivity extends AppCompatActivity implements CapturingListener
 
     }
 
-
+    /**
+     * Log all head movements done. Head movement counter was reset by MoveHead automatically.
+     */
     @Override
     public void onAllHeadMovementsDone(){
         Log.i(TAG, "No movements left! Capturing finished!");
@@ -208,6 +228,9 @@ public class MainActivity extends AppCompatActivity implements CapturingListener
     }
 
 
+    /**
+     * Log capturing failed and retries capturing
+     */
     @Override
     public void onCapturingFailed(){
         Log.e(TAG, "Capturing failed!");
@@ -220,6 +243,9 @@ public class MainActivity extends AppCompatActivity implements CapturingListener
 //        Toast.makeText(getApplicationContext(), "onStart() called!", Toast.LENGTH_SHORT).show();
     }
 
+    /**
+     * Stops capturing and robot SDK head service and activity itself
+     */
     @Override
     protected void onStop() {
         mHead.unbindService();
@@ -252,14 +278,20 @@ public class MainActivity extends AppCompatActivity implements CapturingListener
         super.onDestroy();
     }
 
-    //force landscape mode
+    /**
+     * force landscape mode
+     */
+
     @Override
     public void onConfigurationChanged(Configuration newConfig) {
         // ignore orientation/keyboard change
         super.onConfigurationChanged(newConfig);
     }
 
-
+    /**
+     * Show image in a memory friendly way
+     * @param pictureData image data
+     */
     private void showImage(byte[] pictureData) {
         // Get the dimensions of the View
         int targetW = mImageView.getWidth();
@@ -284,6 +316,12 @@ public class MainActivity extends AppCompatActivity implements CapturingListener
         mImageView.setImageBitmap(bitmap);
     }
 
+    /**
+     * Triggered by android to report users decision for giving camera permission or not
+     * @param requestCode
+     * @param permissions
+     * @param grantResults
+     */
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String permissions[], @NonNull int[] grantResults) {
         switch (requestCode) {
@@ -314,6 +352,9 @@ public class MainActivity extends AppCompatActivity implements CapturingListener
         }
     }
 
+    /**
+     * Listens to robot SDK head service. Reports its movement mode and binding status
+     */
     private ServiceBinder.BindStateListener mServiceBindListenerHead = new ServiceBinder.BindStateListener() {
         @Override
         public void onBind() {

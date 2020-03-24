@@ -9,9 +9,14 @@ import android.widget.TextView;
 
 import com.tud.alexw.visualplacerecognition.Utils;
 
-//Params, the type of the parameters sent to the task upon execution.
-//Progress, the type of the progress units published during the background computation.
-//Result, the type of the result of the background computation.
+
+
+/**
+ * Sets up the framework i.e. loads the index and PCA file asynchronously.
+ * Void     -   Params, the type of the parameters sent to the task upon execution.
+ * Void     -   Progress, the type of the progress units published during the background computation.
+ * String   -   Result, the type of the result of the background computation.
+ */
 public class AsyncFrameworkSetup extends AsyncTask<Void, Void, String> {
 
     public static String TAG = "AsyncSetup";
@@ -21,14 +26,25 @@ public class AsyncFrameworkSetup extends AsyncTask<Void, Void, String> {
     private VLADPQFramework mVladpqFramework;
     private boolean mIsTest;
 
-    public AsyncFrameworkSetup(VLADPQFramework vladpqFramework, TextView textView, Button button, boolean isTest, Context context) {
+    /**
+     * Constructor for VLADFRamework setup
+     * @param vladpqFramework the vladFramework object to set up
+     * @param textView the textView to write status messages to
+     * @param button reference to the capturing button, which is enabled after successful framework setup. Expected to be null for test conduction
+     * @param context application context
+     */
+    public AsyncFrameworkSetup(VLADPQFramework vladpqFramework, TextView textView, Button button, Context context) {
         mVladpqFramework = vladpqFramework;
         mContext = context;
         mTextView = textView;
         mButton = button;
-        mIsTest = isTest;
     }
 
+    /**
+     * Sets up vlad framework according to the config referenced by the vlad framework object
+     * @param voids
+     * @return
+     */
     @Override
     protected String doInBackground(Void... voids) {
         try {
@@ -50,6 +66,10 @@ public class AsyncFrameworkSetup extends AsyncTask<Void, Void, String> {
         }
     }
 
+    /**
+     * Reports success of the setuo progress and logs memory usage of the app with index and pca file loaded
+     * @param result result message indication error or success message
+     */
     protected void onPostExecute(String result) {
 
         Utils.logMemory();

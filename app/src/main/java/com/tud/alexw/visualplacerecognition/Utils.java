@@ -12,6 +12,9 @@ import java.io.File;
 import java.io.IOException;
 import java.util.LinkedList;
 
+/**
+ * Utility class with static methods for conversion, text colouring, and memory status logging
+ */
 public class Utils {
 
     public static String TAG = "Utils";
