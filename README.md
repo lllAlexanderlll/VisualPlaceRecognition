@@ -16,3 +16,10 @@ Alternatively e.g. if only 8 GB of memory are available the [python scripts](htt
 ## Performing Tests
 To perform tests on the robot the App needs to be compiled with a accordingly initialised [https://github.com/lllAlexanderlll/VisualPlaceRecognition/blob/master/app/src/main/java/com/tud/alexw/visualplacerecognition/framework/Config.java](configuration):
 ![Example configuration image](https://github.com/lllAlexanderlll/VisualPlaceRecognition/blob/master/images/config.png)
+
+## Place Recognition
+If tests are disabled (doRunTests=false), place recognition can be conducted by pressing the button "Capture" in the upper left corner of the app. This is only possible after the index was successfully loaded (may take 2 minutes).
+In the MainActivity the head movements can be changed. The configuration entry "nQueriesForResult" must match to array size of head movements.
+
+## Term Paper Reference
+This implementation was created within the context of the term paper "Visual Place Recognition to Support Indoor Localisation" TODO: Reference
