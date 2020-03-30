@@ -6,6 +6,7 @@ The Android App is to install on a Segway Robotics Loomo Robot by using Android 
 For inference the environment in which place recognition shall be conducted is to capture (preferably with the HD camera of Loomo) and indexes, codebooks and a PCA projection matrix is to calculate.
 
 ## Image Capturing of Environment 
+See https://github.com/lllAlexanderlll/CaptureDataset/tree/master
 
 ## Calculation of Linear and PQ indexes, Codebooks and PCA files
 Linear and PQ indexes, Codebooks and PCA files can be calculated using the JAVA software of https://github.com/MKLab-ITI/multimedia-indexing.
