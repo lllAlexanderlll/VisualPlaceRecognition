@@ -11,7 +11,7 @@ See https://github.com/lllAlexanderlll/CaptureDataset/tree/master
 ## Calculation of Linear and PQ indexes, Codebooks and PCA files
 Linear and PQ indexes, Codebooks and PCA files can be calculated using the JAVA software of https://github.com/MKLab-ITI/multimedia-indexing.
 A altered version of the referenced software is used in this app for inference on the robot.
-[Licence notes](https://github.com/lllAlexanderlll/VisualPlaceRecognition/blob/master/app/src/main/java/gr/iti/mklab/visual/License.md) for https://github.com/MKLab-ITI/multimedia-indexing
+[Licence notes](https://github.com/lllAlexanderlll/VisualPlaceRecognition/blob/master/app/src/main/java/gr/iti/mklab/visual/License.md) for https://github.com/MKLab-ITI/multimedia-indexing.
 Alternatively e.g. if only 8 GB of memory are available the [python scripts](https://github.com/lllAlexanderlll/VisualPlaceRecognition/tree/master/app/src/main/python) may be used.
 
 ## Performing Tests
