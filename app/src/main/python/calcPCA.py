@@ -33,7 +33,7 @@ if __name__ == "__main__":
 
     parser = argparse.ArgumentParser(description='Calculate a a file containing the training vector column mean, eigenvalues and eigenvectors by computing SVD with a given projection length (dim. reduction)')
     parser.add_argument("featuresFilePath", type=str, help="path to the file containing the features (Dump from linear index with first value: image name following values feature vector)")
-    #parser.add_argument("projectionLength", type=int, help="Number of dimentions to reduce the vector to")
+
     args = parser.parse_args()
     
     fullpath = os.path.abspath(args.featuresFilePath)
@@ -58,7 +58,8 @@ if __name__ == "__main__":
     print(f"{str(datetime.datetime.now()).split('.')[0]} Starting PCA calculation...")
     u, s, vh = linalg.svd(centeredFeatures, full_matrices=True)
     print(f"{str(datetime.datetime.now()).split('.')[0]} PCA calculation finished.")
-    
+
+    # store differently sized PCA projection matrices
     for dimPCA in [24,48,96]:
         newPCA = vh[:dimPCA,:]    
         print(f"projectionLength: {newPCA.shape}")

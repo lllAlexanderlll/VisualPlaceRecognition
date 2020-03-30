@@ -1,16 +1,3 @@
-    # TODO: calc with Python:
-    # need to know:
-    # precision: OutOfRetrievedSet(TP/(TP + FP))
-    # for recall: FN (misses) --> number of place representations in dataset is needed in python script
-    # TODO?: precision, recall, recall@k(-NN), precision@k(-NN)
-    # averageRecall, averagePrecision, averageRecall@k(-NN), averagePrecision@k(-NN) --> to search for appropriate k
-    # Single System wide number: mAP 
-
-
-# AnnotationCSV:    queryNumb,resultCount,rank,label,x,y,yaw,pitch,distance
-# ResultCSV:        resultCount,resultLabel,confidence,meanX,meanY,meanYaw,meanPitch
-# QueryCSV:         queryNumb,inferenceTime,searchTime,trueLabel,trueX,trueY,trueYaw,truePitch
-
 import numpy as np
 import pandas as pd
 import argparse

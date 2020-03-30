@@ -11,20 +11,6 @@ import matplotlib.pyplot as plt
 import time
 import datetime
 
-
-def readTestCodebook(filepath):
-    print()
-    print("Test Codebook:")
-    testCodebook = np.loadtxt(filepath, delimiter=",")
-    print(testCodebook)
-    print(f"test codebook dim: {testCodebook.shape}")
-    return testCodebook
-
-
-def checkCodebookCalculation(testCodebookPath, mycodebook):
-    testCodebook = readTestCodebook(testCodebookPath)
-    np.testing.assert_array_almost_equal(testCodebook, mycodebook)
-
 def getExistingPath(path):
     fullpath = os.path.abspath(path)
     if(not os.path.exists(fullpath)):
@@ -69,11 +55,6 @@ if __name__ == "__main__":
     
     centroids, label = cluster.vq.kmeans2(powerL2Features, nCentroids, minit='++', missing='warn', check_finite=True)
     print(f"Got centroids {centroids.shape}")
-    
-    # # Test --> is not expected to succeed, since kmeans initialisation is random
-    # if args.testCodebookPath is not None:
-    #     testCodebookPath = getExistingPath(args.testCodebookPath)
-    #     checkCodebookCalculation(testCodebookPath, centroids)
 
     np.set_printoptions(suppress=True)
     savePath = os.path.join(basePath, f"codebook_{os.path.basename(featuresFilePath)[:-4]}_dim_{features.shape[1]}_centroids_{nCentroids}.csv")
