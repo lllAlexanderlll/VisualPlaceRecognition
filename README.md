@@ -23,4 +23,4 @@ If tests are disabled (doRunTests=false), place recognition can be conducted by 
 In the MainActivity the head movements can be changed. The configuration entry "nQueriesForResult" must match to array size of head movements.
 
 ## Term Paper Reference
-This implementation was created within the context of the term paper "Visual Place Recognition to Support Indoor Localisation" TODO: Reference
+This implementation was created within the context of the term paper "Visual Place Recognition to Support Indoor Localisation"
